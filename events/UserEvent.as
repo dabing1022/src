@@ -7,6 +7,7 @@ package events
 		public static const MONEY_CHANGE:String = "money_change";
 		public static const STATE_CHANGE:String = "state_change";
 		public static const BACK_TO_HALL:String = "backToHall";
+		public static const BACK_TO_WELCOME:String = "backToWelcome";
 		//是否显示倒计时
 		public static const COUNT_DOWN_SHOW_CHANGE:String = "countDownShowChange";
 		/**用户自己手动输入*/

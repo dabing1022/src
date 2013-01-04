@@ -39,10 +39,10 @@ package ui
 		private var moneySymbol:Bitmap;
 		/**游戏币文本*/
 		private var moneyTxt:TextField;
-		private const PLEASE_WAIT:String = "游戏中，请等待片刻o(∩_∩)o";
-		private const WAITING:String = "等待中。。。";
-		private const WAIT_OTHERS_JIAO_Z:String = "请等待其他玩家叫庄o(∩_∩)o";
-		private const WAIT_OTHERS_BET:String = "请等待其他玩家下注o(∩_∩)o";
+		private const PLEASE_WAIT:String = "游戏中，请等待片刻...";
+		private const WAITING:String = "观看等待中...";
+		private const WAIT_OTHERS_JIAO_Z:String = "请等待其他玩家抢庄...";
+		private const WAIT_OTHERS_BET:String = "请等待其他玩家下注...";
 		private var countDownTimer:Timer;
 		private var isMySelf:Boolean;
 		private var _userData:UserData;
@@ -83,7 +83,7 @@ package ui
 				//玩家刚进入桌子的时候有2个状态，一个是观看状态，一个是等待准备开始状态
 				//观看状态无倒计时，等待准备开始状态伴随10s倒计时
 				if(_userData.state == UserData.USER_WATCH){
-					text = PLEASE_WAIT;
+					text = isMySelf?PLEASE_WAIT:WAITING;
 				}else if(_userData.state == UserData.USER_WAIT_FOR_READY){
 					text = _userData.nickName;
 				}
@@ -134,6 +134,8 @@ package ui
 			
 			addZsymbolAnime();
 			
+			this.mouseChildren = false;
+			this.mouseEnabled = false;
 			addEventListener(Event.REMOVED_FROM_STAGE, onRemoveFromStage);
 			_userData.addEventListener(UserEvent.STATE_CHANGE, onStateChange);
 			_userData.addEventListener(UserEvent.COUNT_DOWN_SHOW_CHANGE, onCountDownShowChange);
@@ -160,10 +162,9 @@ package ui
 			zSymbolAnime = ResourceUtils.getMovieClip(Resource.IS_Z_ANIME);
 			addChild(zSymbolAnime);
 			zSymbolAnime.scaleX = zSymbolAnime.scaleY = 0.8;
-			zSymbolAnime.cacheAsBitmap = true;
 			zSymbolAnime.x = this.x - 15;
 			zSymbolAnime.y = this.y + 65;
-			zSymbolAnime.visible = false;
+			zSymbolAnime.visible = _userData.isZ;
 			zSymbolAnime.stop();
 		}
 		
@@ -175,6 +176,11 @@ package ui
 				zSymbolAnime.visible= false;
 				zSymbolAnime.stop();
 			}
+		}
+		
+		public function hideZanime():void{
+			zSymbolAnime.visible= false;
+			zSymbolAnime.stop();
 		}
 		
 		//倒计时用来统计自己的倒计时时间
@@ -222,6 +228,13 @@ package ui
 					nickNameAndStatusTxt.text = _userData.nickName;
 					break;
 				case UserData.USER_JIAO_Z:
+					handUp.visible = false;
+					if(isMySelf && !_userData.canJiaoZ){
+						nickNameAndStatusTxt.text = WAIT_OTHERS_JIAO_Z;
+					}else{
+						nickNameAndStatusTxt.text = _userData.nickName;
+					}
+					break;
 				case UserData.USER_SHOWCARDS:
 				case UserData.USER_WAIT_FOR_READY:
 				case UserData.USER_BET:

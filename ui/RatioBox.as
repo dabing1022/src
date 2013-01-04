@@ -20,12 +20,12 @@ package ui
 		private var ratioBg:Bitmap;
 		private var ratioTxt:TextField;
 		private var ratioTF:TextFormat;
-		public var ratio:uint;
+		public var ratio:int;
         //根据type来决定是使用大背景或者是小背景
         //1--->大背景
         //2--->小背景
         private var type:uint;
-		public function RatioBox(ratio:uint, type:uint = 1)
+		public function RatioBox(ratio:int, type:uint = 1)
 		{
 			super();
 			this.ratio = ratio;

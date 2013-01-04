@@ -4,6 +4,7 @@ package ui
 	
 	import flash.display.Bitmap;
 	import flash.display.DisplayObjectContainer;
+	import flash.display.Shape;
 	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
@@ -21,6 +22,7 @@ package ui
 	
 	public class TipPanel extends Sprite
 	{
+		private var bg:Shape;
 		private var tipBg:Bitmap;
 		private var tipTxt:TextField;
 		private var tipTF:TextFormat;
@@ -31,6 +33,7 @@ package ui
 		public function TipPanel()
 		{
 			super();
+			addBg();
 			addTipBg();
 			addTipTxt();
 			addBtns();
@@ -51,16 +54,25 @@ package ui
 			chargeBtn.removeEventListener(MouseEvent.CLICK, onChargeHandler);
 		}
 		
+		private function addBg():void
+		{
+			bg = new Shape();
+			bg.graphics.beginFill(0x888888, 0.2);
+			bg.graphics.drawRect(0, 0, Const.WIDTH, Const.HEIGHT);
+			bg.graphics.endFill();
+			addChild(bg);
+		}
+		
 		private function addBtns():void
 		{
 			confirmBtn = new AnimeButton(ResourceUtils.getBitmapData(Resource.CONFIRM_BUTTON1),
-				ResourceUtils.getBitmapData(Resource.CONFIRM_BUTTON2),	
-				ResourceUtils.getBitmapData(Resource.CONFIRM_BUTTON1), 78, 96);
+										 ResourceUtils.getBitmapData(Resource.CONFIRM_BUTTON2),	
+									     ResourceUtils.getBitmapData(Resource.CONFIRM_BUTTON1), 78, 96);
 			addChild(confirmBtn);
 			
 			chargeBtn = new AnimeButton(ResourceUtils.getBitmapData(Resource.CHARGE_ON_TIP_BUTTON1),
-				ResourceUtils.getBitmapData(Resource.CHARGE_ON_TIP_BUTTON2),	
-				ResourceUtils.getBitmapData(Resource.CHARGE_ON_TIP_BUTTON1), 250, 96);
+										 ResourceUtils.getBitmapData(Resource.CHARGE_ON_TIP_BUTTON2),	
+										 ResourceUtils.getBitmapData(Resource.CHARGE_ON_TIP_BUTTON1), 250, 96);
 			addChild(chargeBtn);
 		}
 		
@@ -114,8 +126,6 @@ package ui
 				parent.removeChild(this);
 			this.parentNode = parentNode;
 			this.parentNode.addChild(this);
-			this.x = this.parentNode.width - this.width >> 1;
-			this.y = this.parentNode.height - this.height >> 1;
 			tipTxt.text = message;
 		}
 		

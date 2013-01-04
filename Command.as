@@ -59,6 +59,10 @@ package
 		public static const TUO_GUAN:String = "1026";
 		/**关闭浏览器*/
 		public static const CLOSE:String = "1027";
+		/**断线恢复游戏（游戏还没结束）*/
+		public static const OFFLINE_RESUME_GAME:String = "1028";
+		/**断线登录*/
+		public static const OFFLINE_LOGIN:String = "1029";
 
 		
 		

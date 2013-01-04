@@ -63,7 +63,7 @@ package ui
 			fastInChairBtn = new AnimeButton(ResourceUtils.getBitmapData(Resource.FAST_IN_CHAIR_BUTTON1),
 				                             ResourceUtils.getBitmapData(Resource.FAST_IN_CHAIR_BUTTON2),
 			                              	 ResourceUtils.getBitmapData(Resource.FAST_IN_CHAIR_BUTTON1));
-			addChild(fastInChairBtn);
+			//addChild(fastInChairBtn);
 			fastInChairBtn.x = 880;
 			fastInChairBtn.y = 74;
 			
@@ -161,15 +161,6 @@ package ui
 			systemBackToWelcomBtn.addEventListener(MouseEvent.CLICK, onSystemBackToWelcomeHandler);
 		}
 		
-		private function removeEventListeners():void{
-			chujiBtn.removeEventListener(MouseEvent.CLICK, onChooseChujiRoomHandler);
-			gaojiBtn.removeEventListener(MouseEvent.CLICK, onChooseGaojiRoomHandler);
-			chargeBtn.removeEventListener(MouseEvent.CLICK, onChargeMoney);
-			addRepoBtn.removeEventListener(MouseEvent.CLICK, onAddRepo);
-			systemHelpBtn.removeEventListener(MouseEvent.CLICK, onSystemHelpHandler);
-			systemBackToWelcomBtn.removeEventListener(MouseEvent.CLICK, onSystemBackToWelcomeHandler);
-		}
-		
 		private function onSystemHelpHandler(e:MouseEvent):void{
 			Childhood.openPlayDiscriptionUrl();
 		}
@@ -185,6 +176,7 @@ package ui
 			}
 			Data.getInstance().player.roomId = 1;
 			setRoomButtonState();
+			PureTxtTip.getInstance().show(this, "正在连接房间服务器中......");
 		}
 		
 		private function onChooseGaojiRoomHandler(e:MouseEvent):void{
@@ -194,6 +186,7 @@ package ui
 			}
 			Data.getInstance().player.roomId = 2;
 			setRoomButtonState();
+			PureTxtTip.getInstance().show(this, "正在连接房间服务器中......");
 		}
 		
 		private function onChargeMoney(e:MouseEvent):void{
@@ -207,32 +200,5 @@ package ui
 				ExternalInterface.call("bookmark");
 			}
 		}
-		
-		public function dispose():void{
-			removeChildren();
-			hallMainBg.bitmapData.dispose();
-			hallMainBg.bitmapData = null;
-			hallMainBg = null;
-			
-			removeEventListeners();
-			chujiBtn.dispose();
-			gaojiBtn.dispose();
-			fastInChairBtn.dispose();
-			addRepoBtn.dispose();
-			chargeBtn.dispose();
-			systemHelpBtn.dispose();
-			systemBackToWelcomBtn.dispose();
-			chujiBtn = null;
-			gaojiBtn = null;
-			fastInChairBtn = null;
-			addRepoBtn = null;
-			chargeBtn = null;
-			systemHelpBtn = null;
-			systemBackToWelcomBtn = null;
-			scrollPaneBg.graphics.clear();
-			scrollPane.source = null;
-			scrollPane = null;
-		}
-		
 	}
 }

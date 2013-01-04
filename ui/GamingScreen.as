@@ -13,9 +13,11 @@ package ui
 	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
+	import flash.events.TimerEvent;
 	import flash.geom.Point;
 	import flash.ui.Mouse;
 	import flash.utils.Dictionary;
+	import flash.utils.Timer;
 	import flash.utils.getTimer;
 	
 	import model.CardData;
@@ -78,6 +80,7 @@ package ui
 		/**观看者眼中看玩家的背面牌列表*/
 		private var cardsBackInWatcherViewList:Vector.<CardsBackShow>;
 		private var cardsFrontInWatcherViewList:Vector.<CardsResultShowBox>;
+		private var showTipConfirmTimer:Timer = new Timer(1000, 1); //收到发牌命令后1s后显示提示和确定按钮
 		public function GamingScreen()
 		{
 			super();
@@ -189,7 +192,7 @@ package ui
 			pleaseGetReadyBtn = new AnimeButton(ResourceUtils.getBitmapData(Resource.PLEASE_GET_READY_BUTTON1),
 				ResourceUtils.getBitmapData(Resource.PLEASE_GET_READY_BUTTON2),
 				ResourceUtils.getBitmapData(Resource.PLEASE_GET_READY_BUTTON1));
-			if(Data.getInstance().player.state == UserData.USER_WAIT_FOR_READY)
+			if(Data.getInstance().player.state == UserData.USER_WAIT_FOR_READY && Data.getInstance().gamingPlayersList.length == 1)
 				pleaseGetReadyBtn.visible = true;
 			else
 				pleaseGetReadyBtn.visible = false;
@@ -264,6 +267,7 @@ package ui
 			tuoguanBtn.addEventListener(MouseEvent.CLICK, onTuoguanHandler);
 			cancelTuoguanBtn.addEventListener(MouseEvent.CLICK, onTuoguanHandler);
 			
+			showTipConfirmTimer.addEventListener(TimerEvent.TIMER, onShowTipAndConfirmBtns);
 			Data.getInstance().player.addEventListener(UserEvent.STATE_CHANGE, onMyStateChangeHandler);
 			Data.getInstance().player.addEventListener(UserEvent.CAN_JIAO_Z, onCanOrNotJiaoZ);
 			Data.getInstance().player.addEventListener(UserEvent.CANNOT_JIAO_Z, onCanOrNotJiaoZ);
@@ -376,6 +380,17 @@ package ui
 						ratioBox.dispose();
 						delete mapUserNameToRatioBox[arr[i].username];
 					}
+				}else{
+					if(Data.getInstance().player.isZ && Data.getInstance().player.winCoin > 0){
+						var myRatioBox:RatioBox = new RatioBox(arr[i].winCoin, 1);
+						addChild(myRatioBox);
+						myRatioBox.x = Const.RATIO_COORD[3].x;
+						myRatioBox.y = Const.RATIO_COORD[3].y;
+						desPoint.x = mapUserToMsgBox[arr[i].username].x;
+						desPoint.y = mapUserToMsgBox[arr[i].username].y + 50;
+						mapUserNameToRatioBox[arr[i].username] = myRatioBox;
+						TweenLite.to(myRatioBox, 1, {x:desPoint.x, y:desPoint.y}); 
+					}
 				}
 					
 				if(arr[i].username == Data.getInstance().player.username) continue;
@@ -420,8 +435,17 @@ package ui
 		}
 		
 		private function showTipAndConfirmBtns():void{
-			showCardsTipBtn.visible = true;
-			showCardsConfirmBtn.visible = true;
+			showTipConfirmTimer.start();
+		}
+		
+		private function onShowTipAndConfirmBtns(event:TimerEvent):void
+		{
+			showCardsTipBtn.visible = showCardsConfirmBtn.visible = true;
+		}
+		
+		private function hideTipAndConfirmBtns():void{
+			showCardsTipBtn.visible = showCardsConfirmBtn.visible = false;
+			showTipConfirmTimer.reset();
 		}
 		
 		private function sendCards(userData:Object):void{
@@ -564,7 +588,7 @@ package ui
 		
 		public function updateMsgsUserData(userArr:Array):void{
 			var len:uint = userArr.length;
-			var user:Object;
+			var user:Object = {};
 			for(var i:uint = 0; i < len; i++){
 				user = userArr[i];
 				mapUserToMsgBox[user.username].updateUserData(user);
@@ -577,8 +601,6 @@ package ui
 		
 		private function startJiaoZ(data:Object):void{
 			mapUserToMsgBox[data.username].updateUserData(data);
-			
-			removeWinRatioBoxes();
 		}
 		
 		private function onBackToHallHandler(event:MouseEvent):void
@@ -663,7 +685,7 @@ package ui
 		private var confirmLock:Boolean = false;
 		private function onShowCardsConfirm(e:MouseEvent = null):void{
 			showDecisionCards(1, manualSelectCards);
-			showCardsConfirmBtn.visible = showCardsTipBtn.visible = false;
+			hideTipAndConfirmBtns();
 			myMessageBox.hideCountDownAnime();
 		}
 		
@@ -680,11 +702,21 @@ package ui
 		public function getReady():void{
 			reset();
 			myMessageBox.showHandUp();
-			
+			//移除赢的钱
+			removeWinRatioBoxes();
+			//移除结果面板
+			if(resultPanel && this.contains(resultPanel)){
+				removeChild(resultPanel);
+				resultPanel.dispose();
+				resultPanel = null;
+			}
+			//移除亮的牌
 			removeCardResultShow();
+			//清除庄的动画
+			clearZ();
 			myCardsBg.visible = false;
 			pleaseGetReadyBtn.visible = false;
-			backToHallButton.visible = false;
+			backToHallButton.visible = (Data.getInstance().gamingPlayersList.length == 1);
 			myMessageBox.hideCountDownAnime();
 			SoundManager.getInstance().playSound(Resource.SND_GET_READY, false);
 			
@@ -693,6 +725,20 @@ package ui
 			userObj.state = UserData.USER_READY;
 			userObj.userCoin = Data.getInstance().player.money;
 			playersDG.updateItemInDp(userObj);
+		}
+		
+		private function clearZ():void
+		{
+			var len:uint = Data.getInstance().gamingPlayersList.length;
+			var user:UserData;
+			for(var i:uint = 0; i < len; i++){
+				user = Data.getInstance().gamingPlayersList[i];
+				if(user.isZ){
+					var msgBox:UserMessageBox = mapUserToMsgBox[user.username];
+					msgBox.hideZanime();
+					break;
+				}
+			}
 		}
 		
 		private function reset():void{
@@ -708,6 +754,82 @@ package ui
 	
 		public function hideGetReadyButton():void{
 			pleaseGetReadyBtn.visible = false;
+		}
+		
+		public function initOfflineLoginView(userList:Array):void{
+			DebugConsole.addDebugLog(stage, "玩家本人断线重连，初始化下注和卡牌信息...");
+			var len:int = userList.length;
+			var i:int,j:int,k:int;
+			//01.如果非庄家如果已经下注，则动画显示下注
+			for(i = 0; i < len; i++){
+				if(userList[i].makers == true){
+					Data.getInstance().Z_PosId = chairIdToPosId(userList[i].chairId);
+					continue;
+				}
+				if(userList[i].state == UserData.USER_BET || userList[i].state == UserData.USER_WAIT_SHOWCARDS
+					|| userList[i].state == UserData.USER_SHOWCARDS){
+					DebugConsole.addDebugLog(stage, "玩家关闭浏览器重新进入显示下注信息...");
+					showPlayersBetCoin(userList[i]);
+				}
+			}
+			
+			//02.如果玩家已发牌，但未亮牌，则显示背面牌
+			var cardsBackShow:CardsBackShow;
+			var playersNum:uint = 8;
+			var posId:uint;
+			for(j = 0; j < len; j++){
+				if(userList[j].state == UserData.USER_WAIT_SHOWCARDS){
+					posId = chairIdToPosId(userList[j].chairId);
+					var userCard:UserCard;
+					if(userList[j].username == Data.getInstance().player.username){
+						for(i = 0; i < 5; i++){
+							var cardsArr:Array = userList[j].cards;
+							var cardData:CardData = new CardData(cardsArr[i].color, cardsArr[i].value);
+							userCard = new UserCard(cardData, true);
+							addChild(userCard);
+							this.swapChildren(userCard, showCardsTipBtn);
+							userCard.x = Const.CARDS_COORD[3].x + 62 * i;
+							userCard.y = Const.CARDS_COORD[3].y;
+							myCardsVec.push(userCard);
+							userCard.addEventListener(MouseEvent.CLICK, onChooseCardToShow);
+							userCard.buttonMode = true;
+						}
+						myCardsBg.visible = true;
+						showCardsTipBtn.visible = showCardsConfirmBtn.visible = true;
+					}else{
+						for(k = 0; k < 5; k++){
+							userCard = new UserCard(null, false);
+							addChild(userCard);
+							userCard.x = Const.CARDS_COORD[posId].x + 22 * k;
+							userCard.y = Const.CARDS_COORD[posId].y;
+							othersCardsVec.push(userCard);
+						}
+					}
+				}
+			}
+			
+			//03.如果玩家已亮牌，则显示亮牌
+			for(i = 0; i < len; i++){
+				if(userList[i].state == UserData.USER_SHOWCARDS){
+					posId = chairIdToPosId(userList[i].chairId);
+					DebugConsole.addDebugLog(stage, "玩家断线重连进去后, " + userList[i].username + ", posId:" + posId);
+					if(userList[i].username == Data.getInstance().player.username){
+						cardResultShowBox = new CardsResultShowBox(userList[i].cardsSize, userList[i].showCards, true);
+						addChild(cardResultShowBox);
+						cardResultShowBox.x = Const.CARDS_COORD[3].x + 30;
+						cardResultShowBox.y = Const.CARDS_COORD[3].y - 10;
+						myCardsBg.visible = true;
+						DebugConsole.addDebugLog(stage, "玩家断线重连进去后显示的自己的牌数据...");
+					}else{
+						var cardsResultShow:CardsResultShowBox = new CardsResultShowBox(userList[i].cardsSize, userList[i].showCards, false);
+						addChild(cardsResultShow);
+						cardsResultShow.x = Const.CARDS_COORD[posId].x;
+						cardsResultShow.y = Const.CARDS_COORD[posId].y;
+						cardsFrontInWatcherViewList.push(cardsResultShow);
+						DebugConsole.addDebugLog(stage, "玩家断线重连进去后显示的其他人的牌数据...");
+					}
+				}
+			}
 		}
 		
 		public function initWatcherView(userList:Array):void{
@@ -732,7 +854,7 @@ package ui
 			for(i = 0; i < len; i++){
 				if(userList[i].state == UserData.USER_WAIT_SHOWCARDS){
 					DebugConsole.addDebugLog(stage, "玩家本人为观看者，展示正在玩的玩家的牌背面...");
-					posId = (i + Data.getInstance().Z_PosId) % 8;
+					posId = chairIdToPosId(userList[i].chairId);
 					cardsBackShow = new CardsBackShow();
 					addChild(cardsBackShow);
 					cardsBackShow.x = Const.CARDS_COORD[posId].x;
@@ -742,10 +864,10 @@ package ui
 			}
 			
 			//03.如果玩家已亮牌，则显示亮牌
-			for(i = 0; i < len; i++){
+			for(i = 0; i < len; i++){	
 				if(userList[i].state == UserData.USER_SHOWCARDS){
 					DebugConsole.addDebugLog(stage, "玩家本人为观看者，展示正在玩的玩家的牌正面结果...");
-					posId = (i + Data.getInstance().Z_PosId) % 8;
+					posId = chairIdToPosId(userList[i].chairId);
 					var cardsResultShow:CardsResultShowBox = new CardsResultShowBox(userList[i].cardsSize, userList[i].showCards, false);
 					addChild(cardsResultShow);
 					cardsResultShow.x = Const.CARDS_COORD[posId].x;
@@ -843,6 +965,12 @@ package ui
 			return playerCards;
 		}
 		
+		public function update():void{
+			if(Data.getInstance().gamingPlayersList.length == 1){
+				backToHallButton.visible = true;
+			}
+		}
+		
 		/**
 		 * @param type
 		 * <li>1 表示手动选择牌或者选择提示然后点击确定，附带第二个参数：牌数组
@@ -928,7 +1056,7 @@ package ui
 				SoundManager.getInstance().playSound(soundName, false);
 				cardResultShowBox = new CardsResultShowBox(cardType, cardsToServer, true);
 				addChild(cardResultShowBox);
-				cardResultShowBox.x = Const.CARDS_COORD[3].x + 20;
+				cardResultShowBox.x = Const.CARDS_COORD[3].x + 30;
 				cardResultShowBox.y = Const.CARDS_COORD[3].y - 10;
 				dispatchEvent(new UserEvent(UserEvent.CONFIRM_SHOW_CARDS, cardsToServer));
 				this.swapChildren(cardResultShowBox, showCardsTipBtn);
@@ -997,10 +1125,6 @@ package ui
 				case UserData.USER_WAIT_BET:
 					hideJiaoZButton();
 					myCardsBg.visible = true;
-//					if(Data.getInstance().player.isTuoguan){
-//						var ratio:int = Data.getInstance().player.betCoinArr[0];
-//						dispatchEvent(new BetEvent(BetEvent.BET, ratio, true));
-//					}
 					break;
 				case UserData.USER_BET:
 					myCardsBg.visible = true;
@@ -1010,41 +1134,28 @@ package ui
 					myCardsBg.visible = true;
 					showTipAndConfirmBtns();
 					hideJiaoZButton();
-//					if(Data.getInstance().player.isTuoguan){
-//						onShowCardsTip();
-//						onShowCardsTip();
-//					}
 					break;
 				case UserData.USER_SHOWCARDS:
 					myCardsBg.visible = true;
-					showCardsConfirmBtn.visible = showCardsTipBtn.visible = false;
+					hideTipAndConfirmBtns();
 					hideJiaoZButton();
 					break;
 				case UserData.USER_WAIT_FOR_READY:
 					myCardsBg.visible = true;
 					pleaseGetReadyBtn.visible = true;
-					showCardsConfirmBtn.visible = showCardsTipBtn.visible = false;
+					hideTipAndConfirmBtns();
 					backToHallButton.visible = true;
 					hideJiaoZButton();
-//					if(Data.getInstance().player.isTuoguan){
-//						onPleaseGetReadyHandler();
-//					}
 					break;
 				case UserData.USER_READY:
 					myCardsBg.visible = true;
-					showCardsConfirmBtn.visible = showCardsTipBtn.visible = false;
+					hideTipAndConfirmBtns();
 					pleaseGetReadyBtn.visible = false;
 					hideJiaoZButton();
 					break;
 				case UserData.USER_JIAO_Z:
-					trace("叫庄时间");
 					myCardsBg.visible = true;
-					showCardsConfirmBtn.visible = showCardsTipBtn.visible = false;
-//					if(Data.getInstance().player.canJiaoZ && Data.getInstance().player.isTuoguan){
-//						dispatchEvent(new UserEvent(UserEvent.JIAO_Z));
-//						hideJiaoZButton();
-//						myMessageBox.hideCountDownAnime();
-//					}
+					hideTipAndConfirmBtns();
 					break;
 			}
 		}
@@ -1061,6 +1172,7 @@ package ui
 			tuoguanBtn.removeEventListener(MouseEvent.CLICK, onTuoguanHandler);
 			cancelTuoguanBtn.removeEventListener(MouseEvent.CLICK, onTuoguanHandler);
 			
+			showTipConfirmTimer.removeEventListener(TimerEvent.TIMER, onShowTipAndConfirmBtns);
 			Data.getInstance().player.removeEventListener(UserEvent.STATE_CHANGE, onMyStateChangeHandler);
 			Data.getInstance().player.removeEventListener(UserEvent.CAN_JIAO_Z, onCanOrNotJiaoZ);
 			Data.getInstance().player.removeEventListener(UserEvent.CANNOT_JIAO_Z, onCanOrNotJiaoZ);

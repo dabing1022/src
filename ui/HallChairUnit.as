@@ -77,7 +77,8 @@ package ui
 					_nickNameTxt.x = 0;
 					_nickNameTxt.y = 52;
 					_nickNameTxt.width = 150;
-					_nickNameTxt.height = 20;
+					_nickNameTxt.height = 30;
+					_nickNameTxt.wordWrap = true;
 					addChild(_nickNameTxt);
 				}
 				_nickNameTxt.text = _playerData.nickName;

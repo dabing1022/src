@@ -50,6 +50,8 @@ package ui
 			
 			avatarInfo = AvatarInfo.getInstance();
 			addChild(avatarInfo);
+			avatarInfo.x = 0;
+			avatarInfo.y = 0;
 			
 			animeLogo = ResourceUtils.getMovieClip(Resource.ANIME_LOGO);
 			animeLogo.cacheAsBitmap = true;
@@ -131,12 +133,10 @@ package ui
 			if(e.target == chujiRoomBtn){
 				obj.roomId = 1;
 				dispatchEvent(new CustomEvent(CustomEvent.CHOOSE_ROOM, obj));
-				DebugConsole.addDebugLog(stage, "玩家在欢迎界面中选择了初级场进入...");
 			}
 			else if(e.target == gaojiRoomBtn){
 				obj.roomId = 2;
 				dispatchEvent(new CustomEvent(CustomEvent.CHOOSE_ROOM, obj));
-				DebugConsole.addDebugLog(stage, "玩家在欢迎界面中选择了高级场进入...");
 			}
 		}
 		
