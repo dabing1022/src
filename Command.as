@@ -63,6 +63,14 @@ package
 		public static const OFFLINE_RESUME_GAME:String = "1028";
 		/**断线登录*/
 		public static const OFFLINE_LOGIN:String = "1029";
+		/**点券兑换游戏豆*/
+		public static const POINT_TO_BEAN:String = "1030";
+		/**游戏豆兑换点券*/
+		public static const BEAN_TO_POINT:String = "1031";
+		/**点券兑换游戏豆，输入兑换数额后确定兑换*/
+		public static const CONFIRM_POINT_TO_BEAN:String = "1032";
+		/**游戏豆兑换点券，输入兑换数额后确定兑换*/
+		public static const CONFIRM_BEAN_TO_POINT:String = "1033";
 
 		
 		

@@ -37,10 +37,10 @@ package ui
 		private function init():void{
 			if(this.type == 1){
 				ratioBg = ResourceUtils.getBitmap(Resource.RATIO_BIG_BG);
-				ratioTF = new TextFormat("Tahoma", 18, 0x990000, true);
+				ratioTF = new TextFormat("Arial", 18, 0x990000, true);
 			}else if(this.type == 2){
 				ratioBg = ResourceUtils.getBitmap(Resource.RATIO_SMALL_BG);
-				ratioTF = new TextFormat("Tahoma", 16, 0x990000, true);
+				ratioTF = new TextFormat("Arial", 16, 0x990000, true);
 				this.mouseChildren = false;
 				this.mouseEnabled = true;
 				this.buttonMode = true;

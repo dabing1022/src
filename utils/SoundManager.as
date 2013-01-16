@@ -9,7 +9,7 @@ package utils{
         private var soundArr:Dictionary;
         private var soundChannelsArr:Array;
         /**soundMute:是否已经静音*/
-        private var soundMute:Boolean = false;
+        public var soundMute:Boolean = false;
         /**soundTrackChannel:用来存储某时刻的唯一声道*/
         private var soundTrackChannel:SoundChannel = new SoundChannel();
         private var tempSound:Sound;

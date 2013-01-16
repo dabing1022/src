@@ -10,12 +10,14 @@ package
 	import flash.ui.ContextMenuItem;
 	
 	import ui.Preload;
+	import ui.SimpleTip;
+
 	[SWF(width="1000", height="680", frameRate="30", backgroundColor=0x222222)]
 	public class Niuniu extends Sprite
 	{
 		private var preLoad:Preload;
 		private var coreGame:CoreGame;
-		private const VERSION:String = "欢乐斗牛内测版2013/01/04/17/55(HOME键打开控制台)";
+		private const VERSION:String = "欢乐斗牛内测版2013/01/16/11/49(HOME键打开控制台)";
 		public function Niuniu()
 		{
 			stage.scaleMode = StageScaleMode.NO_SCALE;
@@ -33,6 +35,7 @@ package
 			preLoad.dispose();
 			preLoad = null;
 			
+			SimpleTip.getInstance().showTip(this, "登录中...");
 			coreGame = new CoreGame();
 			addChild(coreGame);
 		}

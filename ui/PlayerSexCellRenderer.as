@@ -42,9 +42,9 @@ package ui
 		}
 		
 		private function drawBackgroundColor():void{
-			graphics.beginFill(0x999999);
-			graphics.lineStyle(1, 0xcccccc);
-			graphics.drawRect(0,0,45,18);
+			graphics.beginFill(0x555555);
+			graphics.lineStyle(0.1, 0x555555);
+			graphics.drawRect(0,0,45,14);
 			graphics.endFill();           
 		}
 		/**

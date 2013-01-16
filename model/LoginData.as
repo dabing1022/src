@@ -7,7 +7,7 @@ package model
 	{
 		public var username:String;
 		public var password:String;
-		public var platform:String;
+		public var pid:int;
 		public var sign:String;
 		private static var _instance:LoginData;
 		public static function getInstance():LoginData{

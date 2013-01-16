@@ -3,6 +3,7 @@ package ui
 	import com.greensock.TweenLite;
 	
 	import events.BetEvent;
+	import events.ExchangeEvent;
 	import events.RoomEvent;
 	import events.UserEvent;
 	
@@ -61,6 +62,8 @@ package ui
 		/**声效*/
 		private var soundOnBtn:SimpleButton;
 		private var soundOffBtn:SimpleButton;
+		/**点券兑换游戏豆按钮*/
+		private var pointToBeanBtn:AnimeButton;
 		/**离开房间按钮*/
 		private var backToHallButton:SimpleButton;
 		
@@ -75,12 +78,12 @@ package ui
 		/**手动选择的牌*/
 		public var manualSelectCards:Vector.<UserCard>;
 		private var mapUserNameToRatioBox:Dictionary;
-		private var resultPanel:ResultPanel;
 		private var cardsResultShowVec:Vector.<CardsResultShowBox>;
 		/**观看者眼中看玩家的背面牌列表*/
 		private var cardsBackInWatcherViewList:Vector.<CardsBackShow>;
 		private var cardsFrontInWatcherViewList:Vector.<CardsResultShowBox>;
 		private var showTipConfirmTimer:Timer = new Timer(1000, 1); //收到发牌命令后1s后显示提示和确定按钮
+		private var resultPanel:ResultPanel;
 		public function GamingScreen()
 		{
 			super();
@@ -125,16 +128,16 @@ package ui
 
 		private function addChatBox():void{
 			chatBox = new ChatBox();
-			chatBox.x = 792;
-			chatBox.y = 289;
+			chatBox.x = 793;
+			chatBox.y = 292;
 			addChild(chatBox);
 		}
 
 		/**加入玩家头像信息*/
 		private function addAvatarInfo():void{
 			addChild(AvatarInfo.getInstance());
-			AvatarInfo.getInstance().x = 792;
-			AvatarInfo.getInstance().y = 26;
+			AvatarInfo.getInstance().x = 795;
+			AvatarInfo.getInstance().y = 29;
 		}
 		
 		/**加入玩家的信息盒子*/
@@ -242,17 +245,23 @@ package ui
 			addChild(soundOnBtn);
 			soundOnBtn.x = 12;
 			soundOnBtn.y = 590;
-			soundOnBtn.visible = false;
+			soundOnBtn.visible = SoundManager.getInstance().soundMute;
 			
 			soundOffBtn = ResourceUtils.getButton(Resource.SOUND_OFF_BUTTON);
 			addChild(soundOffBtn);
 			soundOffBtn.x = 12;
 			soundOffBtn.y = 590;
+			soundOffBtn.visible = !soundOnBtn.visible;
 			
 			backToHallButton = ResourceUtils.getButton(Resource.BACK_TO_HALL_BUTTON);
 			addChild(backToHallButton);
 			backToHallButton.x = 12;
 			backToHallButton.y = 620;
+			
+			pointToBeanBtn = new AnimeButton(ResourceUtils.getBitmapData(Resource.GAMING_CHARGE_BUTTON1),
+										 ResourceUtils.getBitmapData(Resource.GAMING_CHARGE_BUTTON2),
+										 ResourceUtils.getBitmapData(Resource.GAMING_CHARGE_BUTTON1), 110, 620);
+			addChild(pointToBeanBtn);
 		}
 
 		private function addEventListeners():void{
@@ -264,8 +273,9 @@ package ui
 			soundOnBtn.addEventListener(MouseEvent.CLICK, onOpenSoundHandler);
 			soundOffBtn.addEventListener(MouseEvent.CLICK, onCloseSoundHandler);
 			backToHallButton.addEventListener(MouseEvent.CLICK, onBackToHallHandler);
-			tuoguanBtn.addEventListener(MouseEvent.CLICK, onTuoguanHandler);
-			cancelTuoguanBtn.addEventListener(MouseEvent.CLICK, onTuoguanHandler);
+			pointToBeanBtn.addEventListener(MouseEvent.CLICK, onExchangePanelHandler);
+//			tuoguanBtn.addEventListener(MouseEvent.CLICK, onTuoguanHandler);
+//			cancelTuoguanBtn.addEventListener(MouseEvent.CLICK, onTuoguanHandler);
 			
 			showTipConfirmTimer.addEventListener(TimerEvent.TIMER, onShowTipAndConfirmBtns);
 			Data.getInstance().player.addEventListener(UserEvent.STATE_CHANGE, onMyStateChangeHandler);
@@ -273,6 +283,10 @@ package ui
 			Data.getInstance().player.addEventListener(UserEvent.CANNOT_JIAO_Z, onCanOrNotJiaoZ);
 		}
 /*----------------------------------------------------------------------------------------------------------------------*/
+		private function onExchangePanelHandler(e:MouseEvent):void{
+			dispatchEvent(new ExchangeEvent(ExchangeEvent.POINT_TO_BEAN, 0, true));
+		}
+		
 		
 		private function onTuoguanHandler(event:MouseEvent):void
 		{
@@ -374,7 +388,7 @@ package ui
 						ratioBox.setRatio(arr[i].winCoin);
 						desPoint.x = mapUserToMsgBox[arr[i].username].x;
 						desPoint.y = mapUserToMsgBox[arr[i].username].y + 50;
-						TweenLite.to(ratioBox, 1, {x:desPoint.x, y:desPoint.y}); 
+						TweenLite.to(ratioBox, 0.5, {x:desPoint.x, y:desPoint.y}); 
 					}else{
 						ratioBox.parent.removeChild(ratioBox);
 						ratioBox.dispose();
@@ -389,7 +403,7 @@ package ui
 						desPoint.x = mapUserToMsgBox[arr[i].username].x;
 						desPoint.y = mapUserToMsgBox[arr[i].username].y + 50;
 						mapUserNameToRatioBox[arr[i].username] = myRatioBox;
-						TweenLite.to(myRatioBox, 1, {x:desPoint.x, y:desPoint.y}); 
+						TweenLite.to(myRatioBox, 0.5, {x:desPoint.x, y:desPoint.y}); 
 					}
 				}
 					
@@ -487,7 +501,7 @@ package ui
 				userCard.y = 290;
 				
 				turn = i / playersNum;
-				TweenLite.to(userCard, 0.8, {x:Const.CARDS_COORD[posId].x + space * turn,
+				TweenLite.to(userCard, 0.5, {x:Const.CARDS_COORD[posId].x + space * turn,
 											 y:Const.CARDS_COORD[posId].y,
 											 delay: j * 0.08, 
 											 onStart:onStartSendCards,
@@ -542,7 +556,7 @@ package ui
 			var desX:uint = Const.RATIO_COORD[gamingPosId].x;
 			var desY:uint = Const.RATIO_COORD[gamingPosId].y;
 			mapUserNameToRatioBox[userData.username] = ratioBox;
-			TweenLite.to(ratioBox, 0.8, {x:desX, y:desY, onStart:playBetCoinSound});
+			TweenLite.to(ratioBox, 0.5, {x:desX, y:desY, onStart:playBetCoinSound});
 		}
 		
 		private function playBetCoinSound():void{
@@ -578,6 +592,14 @@ package ui
 				ratioBox.dispose();
 				ratioBox = null;
 			}
+		}
+		
+		public function updateMyMsgMoney(money:int):void{
+			mapUserToMsgBox[Data.getInstance().player.username].userData.money = money;
+		}
+		
+		public function updateGridMyMoney(money:int):void{
+			playersDG.updateItemMoney(Data.getInstance().player.username, money);
 		}
 		
 		public function updateMsgUserData(obj:Object):void{
@@ -816,8 +838,8 @@ package ui
 					if(userList[i].username == Data.getInstance().player.username){
 						cardResultShowBox = new CardsResultShowBox(userList[i].cardsSize, userList[i].showCards, true);
 						addChild(cardResultShowBox);
-						cardResultShowBox.x = Const.CARDS_COORD[3].x + 30;
-						cardResultShowBox.y = Const.CARDS_COORD[3].y - 10;
+						cardResultShowBox.x = Const.CARDS_COORD[3].x + 40;
+						cardResultShowBox.y = Const.CARDS_COORD[3].y;
 						myCardsBg.visible = true;
 						DebugConsole.addDebugLog(stage, "玩家断线重连进去后显示的自己的牌数据...");
 					}else{
@@ -1056,8 +1078,8 @@ package ui
 				SoundManager.getInstance().playSound(soundName, false);
 				cardResultShowBox = new CardsResultShowBox(cardType, cardsToServer, true);
 				addChild(cardResultShowBox);
-				cardResultShowBox.x = Const.CARDS_COORD[3].x + 30;
-				cardResultShowBox.y = Const.CARDS_COORD[3].y - 10;
+				cardResultShowBox.x = Const.CARDS_COORD[3].x + 40;
+				cardResultShowBox.y = Const.CARDS_COORD[3].y;
 				dispatchEvent(new UserEvent(UserEvent.CONFIRM_SHOW_CARDS, cardsToServer));
 				this.swapChildren(cardResultShowBox, showCardsTipBtn);
 				this.swapChildren(cardResultShowBox, pleaseGetReadyBtn);
@@ -1070,8 +1092,8 @@ package ui
 				SoundManager.getInstance().playSound(Resource.SND_RESULT_NO_NIU, false);
 				cardResultShowBox = new CardsResultShowBox(CardType.NO_NIU, Data.getInstance().player.cards, true);
 				addChild(cardResultShowBox);
-				cardResultShowBox.x = Const.CARDS_COORD[3].x + 10;
-				cardResultShowBox.y = Const.CARDS_COORD[3].y - 10;
+				cardResultShowBox.x = Const.CARDS_COORD[3].x + 20;
+				cardResultShowBox.y = Const.CARDS_COORD[3].y;
 				this.swapChildren(cardResultShowBox, showCardsTipBtn);
 			}
 		}
@@ -1169,8 +1191,9 @@ package ui
 			soundOnBtn.removeEventListener(MouseEvent.CLICK, onOpenSoundHandler);
 			soundOffBtn.removeEventListener(MouseEvent.CLICK, onCloseSoundHandler);
 			backToHallButton.removeEventListener(MouseEvent.CLICK, onBackToHallHandler);
-			tuoguanBtn.removeEventListener(MouseEvent.CLICK, onTuoguanHandler);
-			cancelTuoguanBtn.removeEventListener(MouseEvent.CLICK, onTuoguanHandler);
+			pointToBeanBtn.removeEventListener(MouseEvent.CLICK, onExchangePanelHandler);
+//			tuoguanBtn.removeEventListener(MouseEvent.CLICK, onTuoguanHandler);
+//			cancelTuoguanBtn.removeEventListener(MouseEvent.CLICK, onTuoguanHandler);
 			
 			showTipConfirmTimer.removeEventListener(TimerEvent.TIMER, onShowTipAndConfirmBtns);
 			Data.getInstance().player.removeEventListener(UserEvent.STATE_CHANGE, onMyStateChangeHandler);

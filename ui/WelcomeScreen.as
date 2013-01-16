@@ -1,6 +1,7 @@
 package ui
 {
 	import events.CustomEvent;
+	import events.ExchangeEvent;
 	
 	import flash.display.Bitmap;
 	import flash.display.MovieClip;
@@ -29,6 +30,10 @@ package ui
 		private var chujiRoomBtn:AnimeButton;
 		private var gaojiRoomBtn:AnimeButton;
 		private var roomDiscription:RoomDiscription;
+		/**点券（平台金币）兑换游戏豆按钮*/
+		private var point2beanBtn:AnimeButton;
+		/**游戏豆兑换点券（平台金币）按钮*/
+		private var bean2pointBtn:AnimeButton;
 		private var addRepoBtn:AnimeButton;
 		private var chargeBtn:AnimeButton;
 		public function WelcomeScreen()
@@ -50,8 +55,8 @@ package ui
 			
 			avatarInfo = AvatarInfo.getInstance();
 			addChild(avatarInfo);
-			avatarInfo.x = 0;
-			avatarInfo.y = 0;
+			avatarInfo.x = 20;
+			avatarInfo.y = 2;
 			
 			animeLogo = ResourceUtils.getMovieClip(Resource.ANIME_LOGO);
 			animeLogo.cacheAsBitmap = true;
@@ -79,12 +84,22 @@ package ui
 			addChild(roomDiscription);
 			roomDiscription.visible = false;
 			
+			point2beanBtn = new AnimeButton(ResourceUtils.getBitmapData(Resource.POINT_TO_BEAN_BUTTON1),
+				ResourceUtils.getBitmapData(Resource.POINT_TO_BEAN_BUTTON2),
+				ResourceUtils.getBitmapData(Resource.POINT_TO_BEAN_BUTTON1), 530, 8);
+			addChild(point2beanBtn);
+			
+			bean2pointBtn = new AnimeButton(ResourceUtils.getBitmapData(Resource.BEAN_TO_POINT_BUTTON1),
+				ResourceUtils.getBitmapData(Resource.BEAN_TO_POINT_BUTTON2),
+				ResourceUtils.getBitmapData(Resource.BEAN_TO_POINT_BUTTON1), 640, 8);
+			addChild(bean2pointBtn);
+			
 			//游戏充值
 			chargeBtn = new AnimeButton(ResourceUtils.getBitmapData(Resource.CHARGE_MONEY_BUTTON1),
 										ResourceUtils.getBitmapData(Resource.CHARGE_MONEY_BUTTON2),
 										ResourceUtils.getBitmapData(Resource.CHARGE_MONEY_BUTTON1));
 			addChild(chargeBtn);
-			chargeBtn.x = 690;
+			chargeBtn.x = 750;
 			chargeBtn.y = 8;
 			
 			//加入收藏
@@ -92,7 +107,7 @@ package ui
 									     ResourceUtils.getBitmapData(Resource.ADD_REPO_BUTTON2),
 				                         ResourceUtils.getBitmapData(Resource.ADD_REPO_BUTTON1));
 			addChild(addRepoBtn);
-			addRepoBtn.x = 820;
+			addRepoBtn.x = 860;
 			addRepoBtn.y = 8;
 			addEventListeners();
 		}
@@ -112,8 +127,19 @@ package ui
 			gaojiRoomBtn.addEventListener(MouseEvent.MOUSE_OVER, showDiscription);
 			chujiRoomBtn.addEventListener(MouseEvent.MOUSE_OUT, hideDiscription);
 			gaojiRoomBtn.addEventListener(MouseEvent.MOUSE_OUT, hideDiscription);
+			
+			point2beanBtn.addEventListener(MouseEvent.CLICK, onExchangeHandler);
+			bean2pointBtn.addEventListener(MouseEvent.CLICK, onExchangeHandler);
 			chargeBtn.addEventListener(MouseEvent.CLICK, onChargeMoney);
 			addRepoBtn.addEventListener(MouseEvent.CLICK, onAddRepo);
+		}
+		
+		private function onExchangeHandler(event:MouseEvent):void
+		{
+			if(event.currentTarget == point2beanBtn)
+				dispatchEvent(new ExchangeEvent(ExchangeEvent.POINT_TO_BEAN, 0, true));
+			else if(event.currentTarget == bean2pointBtn)
+				dispatchEvent(new ExchangeEvent(ExchangeEvent.BEAN_TO_POINT, 0, true));
 		}
 		
 		private function onChargeMoney(e:MouseEvent):void{
@@ -171,12 +197,19 @@ package ui
 			gaojiRoomBtn.removeEventListener(MouseEvent.MOUSE_OVER, showDiscription);
 			chujiRoomBtn.removeEventListener(MouseEvent.MOUSE_OUT, hideDiscription);
 			gaojiRoomBtn.removeEventListener(MouseEvent.MOUSE_OUT, hideDiscription);
+			
+			point2beanBtn.removeEventListener(MouseEvent.CLICK, onExchangeHandler);
+			bean2pointBtn.removeEventListener(MouseEvent.CLICK, onExchangeHandler);
 			chargeBtn.removeEventListener(MouseEvent.CLICK, onChargeMoney);
 			addRepoBtn.removeEventListener(MouseEvent.CLICK, onAddRepo);
 			chujiRoomBtn.dispose();
 			gaojiRoomBtn.dispose();
+			point2beanBtn.dispose();
+			bean2pointBtn.dispose();
 			chargeBtn.dispose();
 			addRepoBtn.dispose();
+			point2beanBtn = null;
+			bean2pointBtn = null;
 			chujiRoomBtn = null;
 			gaojiRoomBtn = null;
 			chargeBtn = null;

@@ -76,7 +76,7 @@ package ui
 		private function addHeadItem():void{
 			headItem = new ResultItem();
 			addChild(headItem);
-			headItem.x = 20;
+			headItem.x = 30;
 			headItem.y = 70;
 		}
 		

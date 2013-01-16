@@ -32,11 +32,11 @@ package ui
 			bg.scaleX = 0.8;
 			
 			discriptionTxt = new TextField();
-			discriptionTF = new TextFormat("Verdana", 15, 0xffff00, true);
+			discriptionTF = new TextFormat("Verdana", 14, 0xefc44f, false);
 			with(discriptionTxt){
 				text = discription;
-				x = 40;
-				y = 15;
+				x = 60;
+				y = 13;
 				width = 200;
 				height = 30;
 			}

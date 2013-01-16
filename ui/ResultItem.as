@@ -36,7 +36,7 @@ package ui
 			with(cardTypeTxt){
 				width = 60;
 				height = 20;
-				x = 140;
+				x = 125;
 				textColor = 0xffff00;
 				autoSize = TextFieldAutoSize.CENTER;
 				if(cardType == "牌型")
@@ -50,7 +50,7 @@ package ui
 			with(coinTxt){
 				width = 82;
 				height = 20;
-				x = 208;
+				x = 193;
 				textColor = 0xffff00;
 				autoSize = TextFieldAutoSize.CENTER;
 				text = coin;
@@ -61,7 +61,7 @@ package ui
 				isZAnime = ResourceUtils.getMovieClip(Resource.IS_Z_ANIME);
 				addChild(isZAnime);
 				isZAnime.scaleX = isZAnime.scaleY = 0.4;
-				isZAnime.x = -13;
+				isZAnime.x = -10;
 				isZAnime.y = -2;
 			}
 			addEventListener(Event.REMOVED_FROM_STAGE, onRemoveFromStage);

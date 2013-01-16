@@ -98,6 +98,10 @@ package
 		/**欢迎界面*/
 		public static const WELCOME_BG:String = "WelcomeBg";
 		public static const AVATAR_BOX_BG:String = "AvatarBoxBg";
+		public static const POINT_TO_BEAN_BUTTON1:String = "PointToBeanButton1";
+		public static const POINT_TO_BEAN_BUTTON2:String = "PointToBeanButton2";
+		public static const BEAN_TO_POINT_BUTTON1:String = "BeanToPointButton1";
+		public static const BEAN_TO_POINT_BUTTON2:String = "BeanToPointButton2";
 		public static const ADD_REPO_BUTTON1:String = "AddRepoButton1";
 		public static const ADD_REPO_BUTTON2:String = "AddRepoButton2";
 		public static const CHARGE_MONEY_BUTTON1:String = "ChargeMoneyButton1";
@@ -136,9 +140,10 @@ package
 		public static const CONFIRM_BUTTON2:String = "ConfirmButton2";
 		public static const CANCEL_BUTTON1:String = "CancelButton1";
 		public static const CANCEL_BUTTON2:String = "CancelButton2";
-		public static const CHARGE_MONEY_PANEL_BG:String = "ChargeMoneyPanelBg";
+		public static const POINT_TO_BEAN_PANEL_BG:String = "PointToBeanPanelBg";//点券兑换游戏豆面板
+		public static const BEAN_TO_POINT_PANEL_BG:String = "BeanToPointPanelBg"; //游戏豆兑换点券面板
 		public static const GAMING_BG:String = "GamingBg";
-		public static const GAMING_CHARGE_BUTTON1:String = "GamingChargeButton1";
+		public static const GAMING_CHARGE_BUTTON1:String = "GamingChargeButton1"; //游戏界面中兑换游戏豆按钮
 		public static const GAMING_CHARGE_BUTTON2:String = "GamingChargeButton2";
 		public static const GAMING_CHARGE_CONFIRM_BUTTON1:String = "GamingChargeConfirmButton1";
 		public static const GAMING_CHARGE_CONFIRM_BUTTON2:String = "GamingChargeConfirmButton2";

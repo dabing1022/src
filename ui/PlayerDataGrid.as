@@ -12,7 +12,6 @@ package ui
 	
 	import model.UserData;
 	
-	import utils.DebugConsole;
 	import utils.ResourceUtils;
 
 	/**
@@ -30,6 +29,7 @@ package ui
 		private var usernameCol:DataGridColumn;
 		private var moneyCol:DataGridColumn;
 		private var tf:TextFormat;
+		private var tf2:TextFormat;
 		private var Boy:Class;
 		private var Girl:Class;
 		private var Gaming:Class;
@@ -45,26 +45,27 @@ package ui
 		{
 			definiteClasses();
 			tf = new TextFormat("Verdana", 12, 0x999999, true);
-			
-			tableIdCol = new DataGridColumn("tableId");
-			tableIdCol.headerText = "桌号";
-			tableIdCol.width = 45;
-			tableIdCol.editable = false;
-			tableIdCol.sortable = false;
+			tf2 = new TextFormat("Arial", 12, 0xeeeeee, true);
 			
 			statusCol = new DataGridColumn("status");
-			statusCol.headerText = "状态";
-			statusCol.width = 45;
+			statusCol.headerText = "";
+			statusCol.width = 20;
 			statusCol.editable = false;
 			statusCol.sortable = false;
 			statusCol.cellRenderer = PlayerStatusCellRenderer;
 			
 			sexCol = new DataGridColumn("sex");
-			sexCol.headerText = "性别";
-			sexCol.width = 45;
+			sexCol.headerText = "";
+			sexCol.width = 20;
 			sexCol.editable = false;
 			sexCol.sortable = false;
 			sexCol.cellRenderer = PlayerSexCellRenderer;
+			
+			tableIdCol = new DataGridColumn("tableId");
+			tableIdCol.headerText = "桌";
+			tableIdCol.width = 25;
+			tableIdCol.editable = false;
+			tableIdCol.sortable = false;
 			
 			nickNameCol = new DataGridColumn("nickName");
 			nickNameCol.headerText = "昵称";
@@ -86,20 +87,20 @@ package ui
 			dp = new DataProvider();
 			
 			dataGrid = new DataGrid();
-			dataGrid.addColumn(tableIdCol);
 			dataGrid.addColumn(statusCol);
 			dataGrid.addColumn(sexCol);
+			dataGrid.addColumn(tableIdCol);
 			dataGrid.addColumn(nickNameCol);
 			dataGrid.addColumn(usernameCol);
 			dataGrid.addColumn(moneyCol);
 			dataGrid.dataProvider = dp;
-			dataGrid.move(792 , 90);
+			dataGrid.move(793, 93);
 			dataGrid.setSize(200, 200);
 			dataGrid.sortableColumns = false;
 			dataGrid.resizableColumns = false;
-			dataGrid.rowHeight = 18;
+			dataGrid.rowHeight = 15;
 			dataGrid.setStyle("headerTextFormat", tf);
-			dataGrid.setStyle("textFormat", tf);
+			dataGrid.setRendererStyle("textFormat", tf2);
 			dataGrid.selectable = false;
 			dataGrid.horizontalScrollPolicy = ScrollPolicy.ON;
 			dataGrid.verticalScrollPolicy = ScrollPolicy.AUTO;
@@ -129,9 +130,9 @@ package ui
 		public function addItemInDp(userData:UserData):void{
 			var statusInfo:String = getStatusInfoByState(userData.state);
 			var sexInfo:String = getSexInfoByUser(userData.sex);
-			var userItem:Object = {"tableId": userData.tableId,
-									"status":  statusInfo,
+			var userItem:Object = {	"status":  statusInfo,
 									"sex":     sexInfo,
+									"tableId": userData.tableId,
 									"nickName":userData.nickName,
 									"username":userData.username,
 									"money":   userData.money};
@@ -182,6 +183,17 @@ package ui
 				if(dp.getItemAt(i).username == userObj.username){
 					dp.getItemAt(i).status = getStatusInfoByState(userObj.state);
 					dp.getItemAt(i).money = userObj.userCoin;
+					dataGrid.dataProvider = dp;
+					break;
+				}
+			}
+		}
+		
+		public function updateItemMoney(username:String, money:int):void{
+			var len:uint = dp.length;
+			for(var i:uint = 0; i < len; i++){
+				if(dp.getItemAt(i).username == username){
+					dp.getItemAt(i).money = money;
 					dataGrid.dataProvider = dp;
 					break;
 				}

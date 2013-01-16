@@ -17,6 +17,7 @@ package ui
 	import flash.events.MouseEvent;
 	import flash.text.TextField;
 	import flash.text.TextFieldType;
+	import flash.text.TextFormat;
 	import flash.ui.Keyboard;
 	import flash.utils.getTimer;
 	
@@ -41,6 +42,7 @@ package ui
 		private var listCompo:List;
 		private var dp:DataProvider;
 		private var chatData:ChatData;
+		private var tf:TextFormat;
 		public function ChatBox()
 		{
 			super();
@@ -68,7 +70,7 @@ package ui
 			
 			textInputBg = new Shape();
 			textInputBg.graphics.beginFill(0x666666);
-			textInputBg.graphics.drawRoundRect(5, 324, 188, 30, 6, 6);
+			textInputBg.graphics.drawRoundRect(5, 322, 188, 30, 6, 6);
 			textInputBg.graphics.endFill();
 			addChild(textInputBg);
 		}
@@ -111,7 +113,7 @@ package ui
 			fastReplyBtn = ResourceUtils.getButton(Resource.FAST_REPLAY_BUTTON);
 			addChild(fastReplyBtn);
 			fastReplyBtn.x = 148;
-			fastReplyBtn.y = 332;
+			fastReplyBtn.y = 330;
 			
 			sendMessageBtn = ResourceUtils.getButton(Resource.SEND_MESSAGE_BUTTON);
 			addChild(sendMessageBtn);
@@ -132,6 +134,7 @@ package ui
 			dp.addItem({label:Const.FAST_REPLY3});
 			dp.addItem({label:Const.FAST_REPLY4});
 			
+			tf = new TextFormat("Arial", 12, 0xeeeeee, true);
 			listCompo = new List();
 			listCompo.dataProvider = dp;
 			listCompo.setSize(318, 122);
@@ -139,6 +142,7 @@ package ui
 			addChild(listCompo);
 			listCompo.x = -156;
 			listCompo.y = 200;
+			listCompo.setRendererStyle("textFormat", tf);
 			listCompo.visible = false;
 		}
 		

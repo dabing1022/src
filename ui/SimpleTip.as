@@ -25,7 +25,7 @@ package ui
 			
 			bg = new Shape();
 			bg.graphics.beginFill(0x555555);
-			bg.graphics.drawRoundRect(0, 0, 400, 100, 10, 10);
+			bg.graphics.drawRoundRect(0, 0, 400, 100, 20, 20);
 			bg.graphics.endFill();
 			addChild(bg);
 			
@@ -33,7 +33,7 @@ package ui
 			tipTF = new TextFormat("Verdana", 18, 0xfff7e6, true);
 			with(tipTxt){
 				x = 10;
-				y = 26;
+				y = 30;
 				width = 370;
 				height = 56;
 				wordWrap = false;
@@ -54,7 +54,7 @@ package ui
 		}
 		
 		public function hide():void{
-			if(_parent && _parent.contains(this))
+			if(this.parent)
 				_parent.removeChild(this);
 		}
 		

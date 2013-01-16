@@ -6,12 +6,14 @@ package
 	import events.BetEvent;
 	import events.CountDownEvent;
 	import events.CustomEvent;
+	import events.ExchangeEvent;
 	import events.LoginEvent;
 	import events.RoomEvent;
 	import events.UserEvent;
 	
 	import flash.display.Graphics;
 	import flash.display.Loader;
+	import flash.display.SimpleButton;
 	import flash.display.Sprite;
 	import flash.events.ErrorEvent;
 	import flash.events.Event;
@@ -28,14 +30,13 @@ package
 	import flash.utils.Timer;
 	import flash.utils.getTimer;
 	
-	import frocessing.color.ColorHSV;
-	
 	import model.Data;
 	import model.GameState;
 	import model.LoginData;
 	import model.RoomData;
 	import model.UserData;
 	
+	import ui.ExchangePanel;
 	import ui.GamingScreen;
 	import ui.HallChairUnit;
 	import ui.HallScreen;
@@ -43,8 +44,9 @@ package
 	import ui.LoginScreen;
 	import ui.PureTxtTip;
 	import ui.RoomTableContainer;
+	import ui.SimpleTip;
 	import ui.TipPanel;
-	import ui.WarnOffLine;
+	import ui.WarnTipPanel;
 	import ui.WelcomeScreen;
 	
 	import utils.Childhood;
@@ -67,11 +69,9 @@ package
 		private var heartBeat:int;
 		private var gameTimer:Timer;
 		
-		private var dep:Number = 0;
-		private var linearr:Array = new Array();
-		private var dotarr:Array = new Array();
-		private var draw_mc:Sprite;
-		private var color:ColorHSV;
+		private var point2beanPanel:ExchangePanel;
+		private var bean2pointPanel:ExchangePanel;
+		private var warnTipPanel:WarnTipPanel;
 		public function CoreGame()
 		{
 			super();
@@ -81,22 +81,23 @@ package
 		private function onAddedToStage(event:Event):void
 		{
 			removeEventListener(Event.ADDED_TO_STAGE, onAddedToStage);
-			loadConfig();
-			addLoginScreen();
+			SimpleTip.getInstance().hide();
 			
-			//loginBySign();
+			loadConfig();
+			
 			CommunicateUtils.getInstance().addEventListener(ErrorEvent.ERROR, onCommunicateError);
 			
 			ExternalInterface.addCallback("close",sendCloseCommand);
-			color = new ColorHSV();
-			draw_mc = new Sprite();
-			addChild(draw_mc);   
-			draw_mc.visible = false;
-			draw_mc.mouseEnabled = false;
-			draw_mc.mouseChildren = false;
 			startGameTimer();
+			
 			//用于断线处理
 			this.addEventListener(UserEvent.BACK_TO_WELCOME, onBackToWelcome);
+			//用于点券兑换游戏豆
+			this.addEventListener(ExchangeEvent.POINT_TO_BEAN, onAskForExchangeHandler);
+			//用于游戏豆兑换点券
+			this.addEventListener(ExchangeEvent.BEAN_TO_POINT, onAskForExchangeHandler);
+			this.addEventListener(ExchangeEvent.CONFIRM_POINT_TO_BEAN, onConfirmExchange);
+			this.addEventListener(ExchangeEvent.CONFIRM_BEAN_TO_POINT, onConfirmExchange);
 		}
 		
 		private function startGameTimer():void{
@@ -109,8 +110,6 @@ package
 			sendHeartBeat();
 			if(gamingScreen && this.contains(gamingScreen))
 				gamingScreen.update();
-			
-			//updateMousefx();
 		}
 		
 		private var temp:int;
@@ -134,28 +133,65 @@ package
 		{
 			var loginData:Object = {};
 			loginData.username = event.userData.username;
-//			loginData.password = event.userData.password;
-//			loginData.platform = event.userData.platformId;
-//			loginData.username = "3218115";
-			if(event.userData.password == "")
-				loginData.password = "123456";
-			else 
-				loginData.password = event.userData.password;
-			loginData.platform = 51;
+			loginData.password = event.userData.password;
+			loginData.platform = event.userData.platformId;
 			loginData.ip = remoteIP;
 			CommunicateUtils.getInstance().sendMessage(socket, Command.NOMAL_LOGIN, loginData);
 		}		
 		
-		private function loginBySign():void{
-			var sign:String = stage.loaderInfo.parameters("sign");
-			if(sign){
+		private function login():void{
+			var sign:String = this.stage.loaderInfo.parameters["sign"];
+			var pid:int = this.stage.loaderInfo.parameters["pid"];
+			if(sign && pid){
+				DebugConsole.addDebugLog(stage, "sign=" + sign);
 				LoginData.getInstance().sign = sign;
+				LoginData.getInstance().pid = pid;
 				connectServer();
 				signTimer = new Timer(1000);
 				signTimer.addEventListener(TimerEvent.TIMER, onSignTimer);
 				signTimer.start();
+				this.sign = sign;
+			}else{
+				connectServer();
+				addLoginScreen();
 			}
-			this.sign = sign;
+		}
+		
+		private function onHeartBeat(content:String):void{
+			heartBeat = getTimer();
+			socketConnected = true;
+			reconnect = true;
+		}
+		
+		
+		private var socketConnected:Boolean = false;
+		private function onSignTimer(e:TimerEvent):void{
+			try{
+				sendLoginBySign();
+				releaseSignTimer();
+				if(!socketConnected){
+					connectServer();
+					CommunicateUtils.getInstance().sendMessage(socket, Command.HEARTBEAT, "", false);
+				}
+			}catch(e:Error){
+				DebugConsole.addDebugLog(stage, "SignTimer发生错误...");
+			}
+		}
+		
+		private function sendLoginBySign():void{
+			var obj:Object = {};
+			obj.sign = this.sign;
+			obj.pid = LoginData.getInstance().pid;
+			obj.ip = remoteIP;
+			CommunicateUtils.getInstance().sendMessage(socket, Command.LOGIN_BY_SIGN, obj);
+		}
+		
+		private function releaseSignTimer():void{
+			this.sign = "undefined";
+			if(signTimer){
+				signTimer.removeEventListener(TimerEvent.TIMER, onSignTimer);
+				signTimer.stop();
+			}
 		}
 		
 		private function connectServer():Socket
@@ -180,10 +216,20 @@ package
 		
 		/**在服务器关闭套接字连接时调度*/
 		private function onClose(e:Event):void{
-			var warnOffLine:WarnOffLine = new WarnOffLine();
-			addChild(warnOffLine);
+			SimpleTip.getInstance().hide();
+			//3s后显示断线警告框
+			var timer:Timer = new Timer(3000, 1);
+			timer.addEventListener(TimerEvent.TIMER, onShowWarnOffline);
+			timer.start();
+			
 			DebugConsole.addDebugLog(stage, "Socket连接关闭！");
 			tryReconnect();
+		}
+		
+		private function onShowWarnOffline(e:TimerEvent):void{
+			(e.target as Timer).removeEventListener(TimerEvent.TIMER, onShowWarnOffline);
+			var warnOffLine:WarnTipPanel = new WarnTipPanel(WarnTipPanel.OFFLINE);
+			addChild(warnOffLine);
 		}
 		
 		/**在出现输入/输出错误并导致发送或加载操作失败时调度*/
@@ -300,7 +346,86 @@ package
 				case Command.OFFLINE_LOGIN:
 					onOfflineLogin(content);
 					break;
+				case Command.POINT_TO_BEAN://点券兑换游戏豆
+					onPointToBean(content);
+					break;
+				case Command.BEAN_TO_POINT://游戏豆兑换点券
+					onBeanToPoint(content);
+					break;
+				case Command.CONFIRM_POINT_TO_BEAN:
+					onConfirmPointToBean(content);
+					break;
+				case Command.CONFIRM_BEAN_TO_POINT:
+					onConfirmBeanToPoint(content);
+					break;
 			}
+		}
+		
+		private function onConfirmBeanToPoint(content:String):void
+		{
+			SimpleTip.getInstance().hide();
+			hideExchangePanel();
+			var obj:Object = com.adobe.serialization.json.JSON.decode(content);
+			Data.getInstance().player.money = obj.userCoin;
+			if(gamingScreen && gamingScreen.parent){
+				gamingScreen.updateMyMsgMoney(obj.userCoin);
+				gamingScreen.updateGridMyMoney(obj.userCoin);
+			}
+			var warnTipPanel:WarnTipPanel = new WarnTipPanel(WarnTipPanel.EXCHANGE_SUCCESS);
+			addChild(warnTipPanel);
+		}
+		
+		
+		
+		private function onConfirmPointToBean(content:String):void
+		{
+			SimpleTip.getInstance().hide();
+			hideExchangePanel();
+			var obj:Object = com.adobe.serialization.json.JSON.decode(content);
+			Data.getInstance().player.money = obj.userCoin;
+			if(gamingScreen && gamingScreen.parent){
+				gamingScreen.updateMyMsgMoney(obj.userCoin);
+				gamingScreen.updateGridMyMoney(obj.userCoin);
+			}
+			var warnTipPanel:WarnTipPanel = new WarnTipPanel(WarnTipPanel.EXCHANGE_SUCCESS);
+			addChild(warnTipPanel);
+		}
+		
+		private function hideExchangePanel():void{
+			if(point2beanPanel && this.contains(point2beanPanel))
+				removeChild(point2beanPanel);
+			if(bean2pointPanel && this.contains(bean2pointPanel))
+				removeChild(bean2pointPanel);
+		}
+		
+		private function onBeanToPoint(content:String):void{
+			var obj:Object = com.adobe.serialization.json.JSON.decode(content);
+			var nickName:String = Data.getInstance().player.nickName;
+			var pointNum:int = obj.pointNum;
+			var beanNum:int = obj.beanNum;
+			var rateNum:int = obj.rateNum;
+			
+			if(point2beanPanel && point2beanPanel.parent)
+				removeChild(point2beanPanel);
+			bean2pointPanel = new ExchangePanel(ExchangePanel.BEAN_TO_POINT, nickName, pointNum, beanNum, rateNum);
+			addChild(bean2pointPanel);
+			bean2pointPanel.x = Const.WIDTH - bean2pointPanel.width >> 1;
+			bean2pointPanel.y = Const.HEIGHT - bean2pointPanel.height >> 1;
+		}
+		
+		private function onPointToBean(content:String):void{
+			var obj:Object = com.adobe.serialization.json.JSON.decode(content);
+			var nickName:String = Data.getInstance().player.nickName;
+			var pointNum:int = obj.pointNum;
+			var beanNum:int = obj.beanNum;
+			var rateNum:int = obj.rateNum;
+			
+			if(bean2pointPanel && bean2pointPanel.parent)
+				removeChild(bean2pointPanel);
+			point2beanPanel = new ExchangePanel(ExchangePanel.POINT_TO_BEAN, nickName, pointNum, beanNum, rateNum);
+			addChild(point2beanPanel);
+			point2beanPanel.x = Const.WIDTH - point2beanPanel.width >> 1;
+			point2beanPanel.y = Const.HEIGHT - point2beanPanel.height >> 1;
 		}
 		
 		private function onOfflineLogin(content:String):void{
@@ -315,7 +440,6 @@ package
 		private function onOfflineResumeGame(content:String):void{
 			DebugConsole.addDebugLog(stage, "~~~Command.OFFLINE_RESUME_GAME");
 			var obj:Object = com.adobe.serialization.json.JSON.decode(content);
-			DebugConsole.addDebugLog(stage, content);
 			var usersInfoList:Array = obj as Array;
 			Data.getInstance().usersInfoList2gamingPlayersList(usersInfoList);
 			addGamingScreen();
@@ -334,14 +458,12 @@ package
 			DebugConsole.addDebugLog(stage, "~~~Command.FAST_REPLY");
 			var obj:Object = com.adobe.serialization.json.JSON.decode(content);
 			Data.getInstance().chatData.addFastMessage(obj.nickName, obj.messageId);
-			DebugConsole.addDebugLog(stage, content);
 		}
 		
 		private function onNomalChat(content:String):void{
 			DebugConsole.addDebugLog(stage, "~~~Command.NOMAL_CHAT");
 			var obj:Object = com.adobe.serialization.json.JSON.decode(content);
 			Data.getInstance().chatData.addMessage(obj.nickName, obj.message);
-			DebugConsole.addDebugLog(stage, content);
 		}
 		
 		private function onGameOver(content:String):void{
@@ -470,7 +592,6 @@ package
 		
 		private function onChooseChair(content:String):void{
 			DebugConsole.addDebugLog(stage, "~~~Command.CHOOSE_CHAIR");
-			DebugConsole.addDebugLog(stage, content);
 			var obj:Object = com.adobe.serialization.json.JSON.decode(content);
 			var usersInfoList:Array = obj as Array;
 			Data.getInstance().usersInfoList2gamingPlayersList(usersInfoList);
@@ -489,7 +610,6 @@ package
 		private function addGamingScreen():void{
 			gamingScreen = new GamingScreen();
 			addChild(gamingScreen);
-			this.swapChildren(gamingScreen, draw_mc);
 			gamingScreen.addEventListener(CountDownEvent.TIME_UP, onTimeUpHandler);
 			gamingScreen.addEventListener(UserEvent.READY_OK, onReadyOkHandler);
 			gamingScreen.addEventListener(UserEvent.JIAO_Z, onJiaoZHandler);
@@ -504,6 +624,17 @@ package
 			gamingScreen.addEventListener(UserEvent.BACK_TO_WELCOME, onBackToWelcome);
 			SoundManager.getInstance().playSound(Resource.SND_INTO_TABLE, false);
 			DebugConsole.addDebugLog(stage, "玩家本人进入牌桌后的状态为：" + Data.getInstance().player.state);
+		}
+		
+		private function onAskForExchangeHandler(event:ExchangeEvent):void
+		{
+			var obj:Object = {};
+			obj.username = Data.getInstance().player.username;
+			obj.pid = Data.getInstance().player.pid;
+			if(event.type == ExchangeEvent.POINT_TO_BEAN)
+				CommunicateUtils.getInstance().sendMessage(socket, Command.POINT_TO_BEAN, obj);
+			else if(event.type == ExchangeEvent.BEAN_TO_POINT)
+				CommunicateUtils.getInstance().sendMessage(socket, Command.BEAN_TO_POINT, obj);
 		}
 		
 		private function onTuoguanHandler(event:UserEvent):void
@@ -679,11 +810,9 @@ package
 			if(hallScreen == null){
 				hallScreen = new HallScreen();
 				addChild(hallScreen);
-				this.swapChildren(hallScreen, draw_mc);
 			}
 			if(hallScreen && !hallScreen.parent){
 				addChild(hallScreen);
-				this.swapChildren(hallScreen, draw_mc);				
 			}
 			
 			var roomData:RoomData = new RoomData();
@@ -805,7 +934,6 @@ package
 		private function addWelcomeScreen():void{
 			welcomeScreen = new WelcomeScreen();
 			addChild(welcomeScreen);
-			this.swapChildren(welcomeScreen, draw_mc);
 			welcomeScreen.addEventListener(CustomEvent.CHOOSE_ROOM, onChooseRoomHandler);
 		}
 		
@@ -819,39 +947,18 @@ package
 			DebugConsole.addDebugLog(stage, "玩家从欢迎界面发送选择房间命令到服务器..." + obj.nomalIn);
 		}
 		
-		private function onHeartBeat(content:String):void{
-			heartBeat = getTimer();
-			socketConnected = true;
-			reconnect = true;
-		}
-			
 		
-		private var socketConnected:Boolean = false;
-		private function onSignTimer(e:TimerEvent):void{
-			try{
-				if(socketConnected){
-					sendLoginBySign();
-					releaseSignTimer();
-				}
-				connectServer();
-				CommunicateUtils.getInstance().sendMessage(socket, Command.HEARTBEAT, "", false);
-			}catch(e:Error){
-				DebugConsole.addDebugLog(stage, "SignTimer发生错误...");
-			}
-		}
 		
-		private function sendLoginBySign():void{
+		private function onConfirmExchange(e:ExchangeEvent):void{
+			SimpleTip.getInstance().showTip(this, "正在处理兑换，请稍候...");
 			var obj:Object = {};
-			obj.sign = this.sign;
-			obj.ip = remoteIP;
-			CommunicateUtils.getInstance().sendMessage(socket, Command.LOGIN_BY_SIGN, obj);
-		}
-		
-		private function releaseSignTimer():void{
-			this.sign = "undefined";
-			if(signTimer){
-				signTimer.removeEventListener(TimerEvent.TIMER, onSignTimer);
-				signTimer.stop();
+			obj.username = Data.getInstance().player.username;
+			obj.pid = Data.getInstance().player.pid;
+			obj.account = e.exchangeNum;
+			if(e.type == ExchangeEvent.CONFIRM_POINT_TO_BEAN){
+				CommunicateUtils.getInstance().sendMessage(socket, Command.CONFIRM_POINT_TO_BEAN, obj);
+			}else if(e.type == ExchangeEvent.CONFIRM_BEAN_TO_POINT){
+				CommunicateUtils.getInstance().sendMessage(socket, Command.CONFIRM_BEAN_TO_POINT, obj);
 			}
 		}
 		
@@ -871,26 +978,21 @@ package
 		
 		private function onLoadConfigComplete(event:Event):void
 		{
+			var s:String = this.stage.loaderInfo.parameters["sign"];
 			var configXml:XML = new XML(configLoader.data);
 			host = configXml.host;//主机
 			port = configXml.port;//端口
-			Childhood.chargeUrl = configXml.chargeUrl;//充值链接
+			Childhood.loginUrl = configXml.loginUrl;
+			Childhood.chargeUrl = (s != null) ? (configXml.chargeUrl + "?sign=" + s) : configXml.chargeUrl;//充值链接
 			Childhood.playDiscriptionUrl = configXml.playDiscriptionUrl;//游戏说明按钮
-			Childhood.personalCenterUrl = configXml.personalCenterUrl;
-			DebugConsole.addDebugLog(stage, "host: " + host + ", port: " + port);
-			//getIPUrl = configXml.getIPUrl;
-//			ipLoader = new URLLoader();
-//			ipLoader.addEventListener(Event.COMPLETE, onLoadIPComplete);
-//			ipLoader.load(new URLRequest(getIPUrl));
+			Childhood.personalCenterUrl = (s != null) ?(configXml.personalCenterUrl + "?sign=" + s) : configXml.personalCenterUrl;//个人中心
 			DebugConsole.addDebugLog(stage, "资源配置文件加载成功...");
-			DebugConsole.addDebugLog(stage, "充值地址： " + Childhood.chargeUrl);
-			connectServer();
+			login();
 		}
 		
 		private function onLoadIPComplete(e:Event):void{
 			var ip:String = String(ipLoader.data);
 			remoteIP = ip;
-			DebugConsole.addDebugLog(stage, "RemoteIp: " + remoteIP);
 		}
 		
 		/**重连是否成功*/
@@ -910,11 +1012,15 @@ package
 		}
 		
 		private function onError(content:String):void{
+			SimpleTip.getInstance().hide();
 			switch(content){
 				case ErrorCode.NO_USER:
 					DebugConsole.addDebugLog(stage, "错误！找不到此玩家！");
+					Childhood.openLoginUrl();
 					break;
 				case ErrorCode.USER_LOGINED:
+					warnTipPanel = new WarnTipPanel(WarnTipPanel.USER_LOGINED);
+					addChild(warnTipPanel);
 					DebugConsole.addDebugLog(stage, "错误！用户已经登录！");
 					break;
 				case ErrorCode.USER_LOCKED:
@@ -933,15 +1039,22 @@ package
 					DebugConsole.addDebugLog(stage, "游戏豆不足以左下牌桌进行游戏！");
 					TipPanel.getInstance().show(hallScreen, Const.MONEY_NOT_ENOUGH);
 					break;
-				case ErrorCode.ROOM_COIN_FULL:
-					DebugConsole.addDebugLog(stage, "Error--room coin full.");
-					break;
 				case ErrorCode.TABLE_JOIN_ERROR:
 					DebugConsole.addDebugLog(stage, "错误！进入牌桌出错！");
 					break;
 				case ErrorCode.NEXT_TURN_COIN_SHORTAGE:
 					DebugConsole.addDebugLog(stage, "游戏豆不足以进行下轮比赛，请充值！");
 					TipPanel.getInstance().show(gamingScreen, Const.MONEY_NOT_ENOUGH);
+					break;
+				case ErrorCode.EXCHANGE_SHORTAGE:
+					DebugConsole.addDebugLog(stage, "兑换余额不足！");
+					warnTipPanel = new WarnTipPanel(WarnTipPanel.EXCHANGE_SHORTAGE);
+					addChild(warnTipPanel);
+					break;
+				case ErrorCode.EXCHANGE_ERROR:
+					DebugConsole.addDebugLog(stage, "兑换失败！");
+					warnTipPanel = new WarnTipPanel(WarnTipPanel.EXCHANGE_ERROR);
+					addChild(warnTipPanel);
 					break;
 			}
 		}
@@ -961,8 +1074,6 @@ package
 				//如果存在sign登录
 //				var s:String = stage.loaderInfo.parameters["sign"];
 //				obj.sign = s;
-				//obj.username = username;
-//				obj.ip = remoteIP;
 				obj.username = Data.getInstance().player.username;
 				obj.pid = Data.getInstance().player.pid;
 				CommunicateUtils.getInstance().sendMessage(socket, Command.RECONNECT, obj);
@@ -977,59 +1088,6 @@ package
 				obj.pid = Data.getInstance().player.pid;
 				CommunicateUtils.getInstance().sendMessage(socket, Command.CLOSE, obj);
 				trace("关闭浏览器...");
-			}
-		}
-		
-		private function updateMousefx():void{
-			color.h++;
-			
-			var glow:GlowFilter = new GlowFilter( color.value, 1, 16, 16, 2, 3, false, false );
-			draw_mc.filters = [ glow ];   
-			
-			var _obj:Object = new Object();
-			
-			if ( stage.mouseX != 0 && stage.mouseX != 0 )
-			{
-				_obj.x = stage.mouseX;
-				_obj.y = stage.mouseY;
-				dotarr.push( _obj );
-			}
-			if ( dotarr.length > 10 )
-			{
-				dotarr.splice( 0,1 );
-			}
-			
-			var _g:Graphics = draw_mc.graphics;
-			_g.clear();
-			_g.lineStyle( 0, 0xff0000, 100, true, "none", "round", "round", 1 );                
-			var _prevPoint:Point = null;
-			var _dotLength:int = dotarr.length;     
-			
-			if ( _dotLength <= 0 ) return;
-			
-			for ( var i:int = 1; i < _dotLength; ++i )
-			{        
-				var _prevObj:Object = dotarr[i - 1];                                    
-				var _currentObj:Object = dotarr[i];
-				var a:uint = 0;
-				_g.lineStyle( i / 1.2  , 0xffffff, 1, true, "none", "round", "round", 1 );   
-				var _point:Point = new Point( _prevObj.x + ( _currentObj.x - _prevObj.x ) / 2, _prevObj.y + ( _currentObj.y - _prevObj.y ) / 2 );                
-				
-				if ( _prevPoint )
-				{
-					_g.moveTo( _prevPoint.x,_prevPoint.y );
-					_g.curveTo( _prevObj.x,_prevObj.y,_point.x,_point.y );
-				} else {
-					_g.moveTo( _prevObj.x,_prevObj.y );
-					_g.lineTo( _point.x,_point.y );
-				}
-				_prevPoint = _point;
-				
-			}
-			
-			if ( _currentObj )
-			{
-				_g.lineTo( _currentObj.x, _currentObj.y );
 			}
 		}
 	}

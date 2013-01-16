@@ -13,7 +13,6 @@ package ui
 	import model.UserData;
 	
 	import utils.Childhood;
-	import utils.DebugConsole;
 	import utils.ResourceUtils;
 	
 	/**
@@ -137,16 +136,12 @@ package ui
 			chargeBtn.addEventListener(MouseEvent.CLICK, onChargeMoney);
 		}
 		
-		private function onChargeMoney(event:MouseEvent):void
-		{
+		private function onChargeMoney(event:MouseEvent):void{
 			Childhood.openChargeUrl();
-			DebugConsole.addDebugLog(stage, "打开充值链接... " + Childhood.chargeUrl);
 		}
 		
-		private function onPersonalCenter(event:MouseEvent):void
-		{
+		private function onPersonalCenter(event:MouseEvent):void{
 			Childhood.openPersonalCenterUrl();
-			DebugConsole.addDebugLog(stage, "打开个人中心... " + Childhood.personalCenterUrl);
 		}
 		
 		private function updateMoney(e:UserEvent):void{

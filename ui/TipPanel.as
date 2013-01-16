@@ -67,13 +67,17 @@ package ui
 		{
 			confirmBtn = new AnimeButton(ResourceUtils.getBitmapData(Resource.CONFIRM_BUTTON1),
 										 ResourceUtils.getBitmapData(Resource.CONFIRM_BUTTON2),	
-									     ResourceUtils.getBitmapData(Resource.CONFIRM_BUTTON1), 78, 96);
+									     ResourceUtils.getBitmapData(Resource.CONFIRM_BUTTON1));
 			addChild(confirmBtn);
+			confirmBtn.x = tipBg.x + 78;
+			confirmBtn.y = tipBg.y + 96;
 			
 			chargeBtn = new AnimeButton(ResourceUtils.getBitmapData(Resource.CHARGE_ON_TIP_BUTTON1),
 										 ResourceUtils.getBitmapData(Resource.CHARGE_ON_TIP_BUTTON2),	
-										 ResourceUtils.getBitmapData(Resource.CHARGE_ON_TIP_BUTTON1), 250, 96);
+										 ResourceUtils.getBitmapData(Resource.CHARGE_ON_TIP_BUTTON1));
 			addChild(chargeBtn);
+			chargeBtn.x = tipBg.x + 250;
+			chargeBtn.y = tipBg.y + 96;
 		}
 		
 		private function onConfirmHandler(event:MouseEvent):void
@@ -101,8 +105,8 @@ package ui
 			tipTF = new TextFormat("Verdana", 18, 0xffff00, true);
 			tipTF.align = TextFormatAlign.CENTER;
 			tipTxt.defaultTextFormat = tipTF;
-			tipTxt.x = 45;
-			tipTxt.y = 36;
+			tipTxt.x = tipBg.x + 45;
+			tipTxt.y = tipBg.y + 36;
 			tipTxt.width = 320;
 			tipTxt.height = 28;
 			tipTxt.wordWrap = false;
@@ -113,6 +117,8 @@ package ui
 		{
 			tipBg = ResourceUtils.getBitmap(Resource.TIP_BG);
 			addChild(tipBg);
+			tipBg.x = Const.WIDTH - tipBg.bitmapData.width >> 1;
+			tipBg.y = Const.HEIGHT - tipBg.bitmapData.height >> 1;
 		}
 		
 		public static function getInstance():TipPanel{

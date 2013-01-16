@@ -161,7 +161,6 @@ package ui
 		private function addZsymbolAnime():void{
 			zSymbolAnime = ResourceUtils.getMovieClip(Resource.IS_Z_ANIME);
 			addChild(zSymbolAnime);
-			zSymbolAnime.scaleX = zSymbolAnime.scaleY = 0.8;
 			zSymbolAnime.x = this.x - 15;
 			zSymbolAnime.y = this.y + 65;
 			zSymbolAnime.visible = _userData.isZ;
@@ -206,15 +205,15 @@ package ui
 					case UserData.USER_JIAO_Z:
 						dispatchEvent(new CountDownEvent(CountDownEvent.TIME_UP, UserData.USER_JIAO_Z, true));
 				}
-                hideCountDownAnime();
+				hideCountDownAnime();
 			}
 		}
 		
 		public function hideCountDownAnime():void{
 			countDownAnime.visible = false;
-            countDownAnime.stop();
-            if(isMySelf)
-			    countDownTimer.reset();
+			countDownAnime.stop();
+			if(isMySelf)
+				countDownTimer.reset();
 		}
 		
 		public function showHandUp():void{
@@ -299,12 +298,12 @@ package ui
 			_userData.showCards = obj.hasOwnProperty("showCards")?obj.showCards:_userData.showCards;
 			_userData.winCoin = obj.hasOwnProperty("winCoin")?obj.winCoin:_userData.winCoin;
 		}
-
+		
 		public function get userData():UserData
 		{
 			return _userData;
 		}
-
+		
 		public function set userData(value:UserData):void
 		{
 			_userData = value;

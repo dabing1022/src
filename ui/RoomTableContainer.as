@@ -30,8 +30,8 @@ package ui
 				var h:uint = i % 3;
 				var v:uint = i / 3;
 				var hallTableUnit:HallTableUnit = new HallTableUnit(roomId, i + 1);
-				hallTableUnit.x = 18 + 324 * h;
-				hallTableUnit.y = 12 + 324 * v;
+				hallTableUnit.x = 15 + 320 * h;
+				hallTableUnit.y = 12 + 320 * v;
 				
 				addChild(hallTableUnit);
 				tableList.push(hallTableUnit);

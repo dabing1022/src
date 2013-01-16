@@ -17,7 +17,7 @@ package
 		/**配置地址*/
 		public static const CONFIG_URL:String = "config.xml";
 		/**房间1描述*/
-		public static const DISCRIPTION_ROOM1:String = "1万~100万进入";
+		public static const DISCRIPTION_ROOM1:String = "1万以上进入";
 		/**房间2描述*/
 		public static const DISCRIPTION_ROOM2:String = "100万以上进入";
 		/**快速回复*/
