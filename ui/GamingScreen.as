@@ -395,18 +395,19 @@ package ui
 						delete mapUserNameToRatioBox[arr[i].username];
 					}
 				}else{
-					if(Data.getInstance().player.isZ && Data.getInstance().player.winCoin > 0){
+					if(arr[i].makers && arr[i].winCoin > 0){
 						var myRatioBox:RatioBox = new RatioBox(arr[i].winCoin, 1);
 						addChild(myRatioBox);
-						myRatioBox.x = Const.RATIO_COORD[3].x;
-						myRatioBox.y = Const.RATIO_COORD[3].y;
+						var posId:uint = chairIdToPosId(arr[i].chairId);
+						myRatioBox.x = Const.RATIO_COORD[posId].x;
+						myRatioBox.y = Const.RATIO_COORD[posId].y;
 						desPoint.x = mapUserToMsgBox[arr[i].username].x;
 						desPoint.y = mapUserToMsgBox[arr[i].username].y + 50;
 						mapUserNameToRatioBox[arr[i].username] = myRatioBox;
 						TweenLite.to(myRatioBox, 0.5, {x:desPoint.x, y:desPoint.y}); 
 					}
 				}
-					
+				//显示亮的卡牌
 				if(arr[i].username == Data.getInstance().player.username) continue;
 				var gamingPosId:uint = chairIdToPosId(arr[i].chairId);
 				cardsShowPoint = Const.CARDS_COORD[gamingPosId];
@@ -452,12 +453,17 @@ package ui
 			showTipConfirmTimer.start();
 		}
 		
+		public function hideGetReadyBtn():void{
+			pleaseGetReadyBtn.visible = false;
+			getReady();
+		}
+		
 		private function onShowTipAndConfirmBtns(event:TimerEvent):void
 		{
 			showCardsTipBtn.visible = showCardsConfirmBtn.visible = true;
 		}
 		
-		private function hideTipAndConfirmBtns():void{
+		public function hideTipAndConfirmBtns():void{
 			showCardsTipBtn.visible = showCardsConfirmBtn.visible = false;
 			showTipConfirmTimer.reset();
 		}
@@ -706,9 +712,10 @@ package ui
 		private var cardResultShowBox:CardsResultShowBox;
 		private var confirmLock:Boolean = false;
 		private function onShowCardsConfirm(e:MouseEvent = null):void{
-			showDecisionCards(1, manualSelectCards);
+			showDecisionCards(1, manualSelectCards, false);
 			hideTipAndConfirmBtns();
 			myMessageBox.hideCountDownAnime();
+			DebugConsole.addDebugLog(stage, "亮牌确定后隐藏倒计时...");
 		}
 		
 		private function onPleaseGetReadyHandler(e:MouseEvent = null):void{
@@ -738,7 +745,6 @@ package ui
 			clearZ();
 			myCardsBg.visible = false;
 			pleaseGetReadyBtn.visible = false;
-			backToHallButton.visible = (Data.getInstance().gamingPlayersList.length == 1);
 			myMessageBox.hideCountDownAnime();
 			SoundManager.getInstance().playSound(Resource.SND_GET_READY, false);
 			
@@ -841,6 +847,7 @@ package ui
 						cardResultShowBox.x = Const.CARDS_COORD[3].x + 40;
 						cardResultShowBox.y = Const.CARDS_COORD[3].y;
 						myCardsBg.visible = true;
+						this.swapChildren(cardResultShowBox, pleaseGetReadyBtn);
 						DebugConsole.addDebugLog(stage, "玩家断线重连进去后显示的自己的牌数据...");
 					}else{
 						var cardsResultShow:CardsResultShowBox = new CardsResultShowBox(userList[i].cardsSize, userList[i].showCards, false);
@@ -999,7 +1006,7 @@ package ui
 		 * <li>2 表示倒计时时间到，如果没有手动选牌系统自动判定为无牛</li>
 		 * @param cards:Vector.<UserCard> 用户牌数组
 		 * */
-		public function showDecisionCards(type:uint, cards:Vector.<UserCard> = null):void{
+		public function showDecisionCards(type:uint, cards:Vector.<UserCard> = null, timeUp:Boolean = false):void{
 			if(type == 1 && !confirmLock){
 				confirmLock = true;
 				removeSystemSendsCards();
@@ -1080,7 +1087,8 @@ package ui
 				addChild(cardResultShowBox);
 				cardResultShowBox.x = Const.CARDS_COORD[3].x + 40;
 				cardResultShowBox.y = Const.CARDS_COORD[3].y;
-				dispatchEvent(new UserEvent(UserEvent.CONFIRM_SHOW_CARDS, cardsToServer));
+				if(!timeUp)
+					dispatchEvent(new UserEvent(UserEvent.CONFIRM_SHOW_CARDS, cardsToServer));
 				this.swapChildren(cardResultShowBox, showCardsTipBtn);
 				this.swapChildren(cardResultShowBox, pleaseGetReadyBtn);
 			}else if(type == 2 && !confirmLock){
@@ -1147,20 +1155,24 @@ package ui
 				case UserData.USER_WAIT_BET:
 					hideJiaoZButton();
 					myCardsBg.visible = true;
+					backToHallButton.visible = false;
 					break;
 				case UserData.USER_BET:
 					myCardsBg.visible = true;
 					hideJiaoZButton();
+					backToHallButton.visible = false;
 					break;
 				case UserData.USER_WAIT_SHOWCARDS:
 					myCardsBg.visible = true;
 					showTipAndConfirmBtns();
 					hideJiaoZButton();
+					backToHallButton.visible = false;
 					break;
 				case UserData.USER_SHOWCARDS:
 					myCardsBg.visible = true;
 					hideTipAndConfirmBtns();
 					hideJiaoZButton();
+					backToHallButton.visible = false;
 					break;
 				case UserData.USER_WAIT_FOR_READY:
 					myCardsBg.visible = true;
@@ -1177,6 +1189,7 @@ package ui
 					break;
 				case UserData.USER_JIAO_Z:
 					myCardsBg.visible = true;
+					backToHallButton.visible = false;
 					hideTipAndConfirmBtns();
 					break;
 			}

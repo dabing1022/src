@@ -63,7 +63,7 @@ package ui
 			
 			tableIdCol = new DataGridColumn("tableId");
 			tableIdCol.headerText = "桌";
-			tableIdCol.width = 25;
+			tableIdCol.width = 28;
 			tableIdCol.editable = false;
 			tableIdCol.sortable = false;
 			

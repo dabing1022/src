@@ -41,8 +41,8 @@ package ui
 			player = Data.getInstance().player;
 			player.addEventListener(UserEvent.MONEY_CHANGE, updateMoney);
 			addAvatarBox();
-            //个人中心链接、充值链接
-			addLinkButtons();
+            //个人中心链接、充值链接(第一版暂时不加入)
+			//addLinkButtons();
 			addChild(MessageTip.getInstance());
 		}
 		

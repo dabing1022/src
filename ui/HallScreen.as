@@ -46,6 +46,8 @@ package ui
 		
 		private var scrollPaneBg:Shape;
 		public var scrollPane:ScrollPane;
+		
+		private var publicTestLogo:Bitmap;
 		public function HallScreen()
 		{
 			super();
@@ -102,6 +104,11 @@ package ui
 			addScrollPaneBg();
 			addScrollPane();
 			addSystemBtns();
+			
+			publicTestLogo = ResourceUtils.getBitmap(Resource.PUBLIC_TEST_LOGO);
+			addChild(publicTestLogo);
+			publicTestLogo.x = 380;
+			publicTestLogo.y = 8;
 			
 			addEventListener(Event.ADDED_TO_STAGE, onAddedToStage);
 		}

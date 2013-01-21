@@ -7,12 +7,13 @@ package utils
 	import flash.display.Stage;
 	import flash.events.KeyboardEvent;
 	import flash.ui.Keyboard;
+	import flash.utils.getTimer;
 	
 	public class DebugConsole extends Sprite
 	{
-		private static var debug:TextArea;
+			private static var debug:TextArea;
 		private static var lineNo:uint;
-		private static var isDebug:Boolean = true;
+		private static var isDebug:Boolean = false;
 		public function DebugConsole(stage:Stage = null):void
 		{
 			super();
@@ -21,7 +22,7 @@ package utils
 		public static function addDebugLog(stage:Stage, info:String):void{
 			if(!isDebug)	return;
 			if(debug){
-				debug.text += "\n" + lineNo + "-->" + info;
+				debug.text += "\n" + lineNo + "-->" + info + "(" + getTimer() + ")";
 				lineNo ++;
 			}else{
 				debug = new TextArea(null, 200, 100);

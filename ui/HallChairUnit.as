@@ -65,6 +65,8 @@ package ui
 			this.noPlayer = noPlayer;
 			_playerData = playerData;
 			if(_noPlayer){
+				if(_avatar.bitmapData != ResourceUtils.getBitmapData(Resource.DESK_PLAYER_AVATAR_NO))
+					_avatar.bitmapData.dispose();
 				_avatar.bitmapData = ResourceUtils.getBitmapData(Resource.DESK_PLAYER_AVATAR_NO);
 				if(_nickNameTxt && _nickNameTxt.parent){
 					removeChild(_nickNameTxt)

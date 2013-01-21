@@ -36,6 +36,8 @@ package ui
 		private var bean2pointBtn:AnimeButton;
 		private var addRepoBtn:AnimeButton;
 		private var chargeBtn:AnimeButton;
+		
+		private var publicTestLogo:Bitmap;
 		public function WelcomeScreen()
 		{
 			super();
@@ -109,6 +111,12 @@ package ui
 			addChild(addRepoBtn);
 			addRepoBtn.x = 860;
 			addRepoBtn.y = 8;
+			
+			publicTestLogo = ResourceUtils.getBitmap(Resource.PUBLIC_TEST_LOGO);
+			addChild(publicTestLogo);
+			publicTestLogo.x = 380;
+			publicTestLogo.y = 8;
+			
 			addEventListeners();
 		}
 		
@@ -185,8 +193,11 @@ package ui
 			removeChildren();
 			bg.graphics.clear();
 			welcomeBg.bitmapData.dispose();
+			publicTestLogo.bitmapData.dispose();
 			welcomeBg.bitmapData = null;
+			publicTestLogo.bitmapData = null;
 			welcomeBg = null;
+			publicTestLogo = null;
 			
 			animeLogo.stop();
 			animeLogo = null;

@@ -104,7 +104,7 @@ package ui
 					userCard.y = 0;
 					for(j = 0; j < 4; j++){
 						cardData = _cards[i];
-						userCard = CardUtils.getInstance().cardMap[cardData.key];
+						userCard =  new Bitmap(CardUtils.getInstance().cardMap[cardData.key]);
 						addChild(userCard);
 						userCard.x = _hSpace * 0.5 + _hSpace * j;
 						userCard.y = _vSpace;

@@ -201,6 +201,7 @@ package ui
 						break;
 					case UserData.USER_WAIT_SHOWCARDS:
 						dispatchEvent(new CountDownEvent(CountDownEvent.TIME_UP, UserData.USER_WAIT_SHOWCARDS, true));
+						DebugConsole.addDebugLog(stage, "倒计时时间到派发亮牌事件");
 						break;
 					case UserData.USER_JIAO_Z:
 						dispatchEvent(new CountDownEvent(CountDownEvent.TIME_UP, UserData.USER_JIAO_Z, true));

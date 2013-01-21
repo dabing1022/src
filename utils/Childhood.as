@@ -9,17 +9,11 @@ package utils
 
 	public class Childhood
 	{
-		public static var loginUrl:String;
 		public static var chargeUrl:String;
 		public static var playDiscriptionUrl:String;
 		public static var personalCenterUrl:String;
 		public static function openUrl(url:String):void{
 			navigateToURL(new URLRequest(url), "_blank");
-		}
-		
-		public static function openLoginUrl():void{
-			if(ExternalInterface.available)
-				ExternalInterface.call("login", loginUrl);
 		}
 		
 		public static function openChargeUrl():void{

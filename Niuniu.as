@@ -17,7 +17,7 @@ package
 	{
 		private var preLoad:Preload;
 		private var coreGame:CoreGame;
-		private const VERSION:String = "欢乐斗牛内测版2013/01/16/11/49(HOME键打开控制台)";
+		private const VERSION:String = "欢乐斗牛内测版2013/01/21/14/00";
 		public function Niuniu()
 		{
 			stage.scaleMode = StageScaleMode.NO_SCALE;

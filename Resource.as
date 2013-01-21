@@ -114,6 +114,7 @@ package
 		public static const PERSONAL_CENTER_BUTTON:String = "PersonalCenterButton";
 		public static const CHARGE_BUTTON:String = "ChargeButton";
 		public static const AVATAR_TXT_BG:String = "AvatarTxtBg";
+		public static const PUBLIC_TEST_LOGO:String = "PublicTestLogo";
 		
 		/**大厅界面*/
 		public static const LABA:String = "Laba";

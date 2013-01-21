@@ -119,11 +119,6 @@ package ui
 			addChild(sendMessageBtn);
 			sendMessageBtn.x = 164;
 			sendMessageBtn.y = 324;
-			
-			clearTxtBtn.addEventListener(MouseEvent.CLICK, onClearTxt);
-			fastReplyBtn.addEventListener(MouseEvent.CLICK, onFastReply);
-			sendMessageBtn.addEventListener(MouseEvent.CLICK, onSendMessage);
-			stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownHandler);
 		}
 		
 		private function addList():void{
@@ -164,11 +159,6 @@ package ui
 			sendMessage();
 		}
 		
-		private function onKeyDownHandler(e:KeyboardEvent):void{
-			if(e.keyCode == Keyboard.ENTER)
-				sendMessage();
-		}
-		
 		public function addWelcomeMessage(nickName:String):void{
 			textArea.htmlText += "<font color='#ffff00' size='13'>温馨提示：</font>"
 				+ "<font color='#99FF00' size='13'>"+nickName+"</font>" 
@@ -188,7 +178,7 @@ package ui
 			textArea.verticalScrollPosition = textArea.maxVerticalScrollPosition;
 		}
 		
-		private function sendMessage():void{
+		public function sendMessage():void{
 			if(inputTxt.text == "" || inputTxt.text.length == 0){
 				textArea.htmlText += "<font color='#ffff00' size='13'>提示：</font><font color='#ffffff' size='13'>您输入的内容不能为空！</font>\n";
 			}else{
@@ -235,7 +225,6 @@ package ui
 			clearTxtBtn.addEventListener(MouseEvent.CLICK, onClearTxt);
 			fastReplyBtn.addEventListener(MouseEvent.CLICK, onFastReply);
 			sendMessageBtn.addEventListener(MouseEvent.CLICK, onSendMessage);
-			stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownHandler);
 			listCompo.addEventListener(ListEvent.ITEM_CLICK, onClickListItem);
 			chatData.addEventListener(ChatEvent.DATA_CHANGE, onChatDataChange);
 			addEventListener(Event.REMOVED_FROM_STAGE, onRemoveFromStage);
@@ -245,7 +234,6 @@ package ui
             clearTxtBtn.removeEventListener(MouseEvent.CLICK, onClearTxt);
             fastReplyBtn.removeEventListener(MouseEvent.CLICK, onFastReply);
             sendMessageBtn.removeEventListener(MouseEvent.CLICK, onSendMessage);
-            stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyDownHandler);
             listCompo.removeEventListener(ListEvent.ITEM_CLICK, onClickListItem);
 			chatData.removeEventListener(ChatEvent.DATA_CHANGE, onChatDataChange);
 			removeEventListener(Event.REMOVED_FROM_STAGE, onRemoveFromStage);

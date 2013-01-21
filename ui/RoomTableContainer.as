@@ -42,12 +42,10 @@ package ui
 		
 		public function setRoom(roomData:RoomData):void{
 			_roomData = roomData;
-			if(_roomData.players.length == 0){
-				trace("房间没有人，清空...");
-				for each(var hallTableUnit:HallTableUnit in tableList){
-					hallTableUnit.resumeNoPlayers();
-				}
+			for each(var hallTableUnit:HallTableUnit in tableList){
+				hallTableUnit.resumeNoPlayers();
 			}
+			
 			var i:uint;
 			var roomId:int = _roomData.roomId;
 			var tableNum:int = _roomData.tableNum;
@@ -97,7 +95,6 @@ package ui
 			
             //通过玩家的tableId,用tableStateMap映射找到对应的用于展示状态的桌子
 			var hallTableState:HallTableState = Data.getInstance().tableStateMap[roomId + "_" + tableId];
-			if(hallTableState.tableData.state == TableData.GAMING)	return;
 			if(userState == UserData.USER_WAIT_FOR_READY){
 				hallTableState.setState(TableData.WAITING, chairId - 1, false);
 			}else if(userState == UserData.USER_READY){
@@ -105,6 +102,8 @@ package ui
 			}else if(userState == 1 && hasNoPlayers(roomId, tableId)){  //规定：如果用户状态为1，则视为离开牌桌
 				hallTableState.setState(TableData.NO_PLAYER);
 				DebugConsole.addDebugLog(stage, "当前场的 " + tableId + " 桌子已经没人");
+			}else if(userState == 1 && !hasNoPlayers(roomId, tableId)){
+				hallTableState.setState(TableData.WAITING, chairId - 1, false);
 			}else{
 				hallTableState.setState(TableData.GAMING);
 			}

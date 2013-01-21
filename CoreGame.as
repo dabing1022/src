@@ -87,7 +87,10 @@ package
 			
 			CommunicateUtils.getInstance().addEventListener(ErrorEvent.ERROR, onCommunicateError);
 			
-			ExternalInterface.addCallback("close",sendCloseCommand);
+			if(ExternalInterface.available){
+				ExternalInterface.addCallback("close",sendCloseCommand);
+				ExternalInterface.addCallback("sendMsgByJsEnter", sendMsgByJsEnter);
+			}
 			startGameTimer();
 			
 			//用于断线处理
@@ -98,6 +101,12 @@ package
 			this.addEventListener(ExchangeEvent.BEAN_TO_POINT, onAskForExchangeHandler);
 			this.addEventListener(ExchangeEvent.CONFIRM_POINT_TO_BEAN, onConfirmExchange);
 			this.addEventListener(ExchangeEvent.CONFIRM_BEAN_TO_POINT, onConfirmExchange);
+		}
+		
+		private function sendMsgByJsEnter():void{
+			if(gamingScreen && this.contains(gamingScreen)){
+				gamingScreen.chatBox.sendMessage();
+			}
 		}
 		
 		private function startGameTimer():void{
@@ -676,7 +685,7 @@ package
 			DebugConsole.addDebugLog(stage, "向服务器发送返回大厅请求...");
 		}		
 		
-		private function onReadyOkHandler(e:UserEvent):void{
+		private function onReadyOkHandler(e:UserEvent=null):void{
 			DebugConsole.addDebugLog(stage, "玩家本人准备OK...");
 			var obj:Object = {};
 			obj.username = Data.getInstance().player.username;
@@ -728,7 +737,11 @@ package
 			switch(e.countDownType){
 				case UserData.USER_WAIT_FOR_READY:
 					DebugConsole.addDebugLog(stage, "玩家准备状态倒计时结束...");
+					//为方便压力测试，本来要退出桌子回到大厅
 					CommunicateUtils.getInstance().sendMessage(socket, Command.BACK_TO_HALL, obj);
+					//onReadyOkHandler();//压力test更改
+					//gamingScreen.hideGetReadyBtn();//压力test更改
+					
 					DebugConsole.addDebugLog(stage, "UserWaitForReady--Time is up!!!");
 					break;
 				case UserData.USER_WAIT_BET:
@@ -743,14 +756,15 @@ package
 					DebugConsole.addDebugLog(stage, "玩家等待亮牌状态倒计时结束...");
 					if(gamingScreen.manualSelectCards.length >  0){//玩家手动选择了牌
 						obj.cards = gamingScreen.getManualCardsToSever();
-						gamingScreen.showDecisionCards(1, gamingScreen.manualSelectCards); 
+						gamingScreen.showDecisionCards(1, gamingScreen.manualSelectCards, true); 
 						obj.manualLength = gamingScreen.manualSelectCards.length;
 					}else{
 						obj.cards = Data.getInstance().player.cards;
-						gamingScreen.showDecisionCards(2);
+						gamingScreen.showDecisionCards(2, null, true);
 						obj.manualLength = 0;
 					}
 					obj.timeUp = true;
+					gamingScreen.hideTipAndConfirmBtns();
 					CommunicateUtils.getInstance().sendMessage(socket, Command.START_SHOWCARDS, obj);
 					break;
 				case UserData.USER_JIAO_Z:
@@ -979,13 +993,14 @@ package
 		private function onLoadConfigComplete(event:Event):void
 		{
 			var s:String = this.stage.loaderInfo.parameters["sign"];
+			var pid:String = this.stage.loaderInfo.parameters["pid"];
+			var chargePid:String = "p" + pid;
 			var configXml:XML = new XML(configLoader.data);
 			host = configXml.host;//主机
 			port = configXml.port;//端口
-			Childhood.loginUrl = configXml.loginUrl;
-			Childhood.chargeUrl = (s != null) ? (configXml.chargeUrl + "?sign=" + s) : configXml.chargeUrl;//充值链接
 			Childhood.playDiscriptionUrl = configXml.playDiscriptionUrl;//游戏说明按钮
-			Childhood.personalCenterUrl = (s != null) ?(configXml.personalCenterUrl + "?sign=" + s) : configXml.personalCenterUrl;//个人中心
+			Childhood.chargeUrl = (s != null) ? (configXml.chargeUrl.child(chargePid) + "?sign=" + s) : configXml.chargeUrl;//充值链接
+			Childhood.personalCenterUrl = (s != null) ?(configXml.personalCenterUrl.child(chargePid) + "?sign=" + s) : configXml.personalCenterUrl;//个人中心
 			DebugConsole.addDebugLog(stage, "资源配置文件加载成功...");
 			login();
 		}
@@ -1016,7 +1031,6 @@ package
 			switch(content){
 				case ErrorCode.NO_USER:
 					DebugConsole.addDebugLog(stage, "错误！找不到此玩家！");
-					Childhood.openLoginUrl();
 					break;
 				case ErrorCode.USER_LOGINED:
 					warnTipPanel = new WarnTipPanel(WarnTipPanel.USER_LOGINED);
