@@ -30,6 +30,8 @@ package ui
 		public static const EXCHANGE_ERROR:String = "exchangeError";
 		public static const EXCHANGE_SUCCESS:String = "exchangeSuccess";
 		public static const USER_LOGINED:String = "userLogined";
+		public static const RECONNECT_ERROR:String = "reconnectError";
+		public static const RECONNECT_SUCCESS:String = "reconnectSuccess";
 		private var _type:String;
 		public function WarnTipPanel(type:String)
 		{
@@ -60,6 +62,11 @@ package ui
 		{
 			if(_type == OFFLINE)
 				dispatchEvent(new UserEvent(UserEvent.BACK_TO_WELCOME, null, true));
+			else if(_type == RECONNECT_ERROR){
+				if(ExternalInterface.available){
+					ExternalInterface.call("reloadHtml");
+				}
+			}
 			hide();
 		}
 		
@@ -69,10 +76,13 @@ package ui
 			confirmBtn.removeEventListener(MouseEvent.CLICK, onConfirmHandler);
 			
 			removeChildren();
+			bg.graphics.clear();
 			tipBg.bitmapData.dispose();
 			tipBg.bitmapData = null;
+			bg = null;
 			tipBg = null;
 			tipTxt = null;
+			tipTF = null;
 			confirmBtn.dispose();
 			confirmBtn = null;
 		}
@@ -97,6 +107,13 @@ package ui
 			tipTxt.width = 320;
 			tipTxt.height = 28;
 			tipTxt.wordWrap = false;
+			showTip(_type);
+			
+			addChild(tipTxt);
+		}
+		
+		public function showTip(type:String):void{
+			_type = type;
 			switch(_type){
 				case OFFLINE:
 					tipTxt.text = "您的网络出现异常断开，尝试重连中...";
@@ -113,8 +130,13 @@ package ui
 				case USER_LOGINED:
 					tipTxt.text = "用户已登录！";
 					break;
+				case RECONNECT_ERROR:
+					tipTxt.text = "重连失败，请重新登录...";
+					break;
+				case RECONNECT_SUCCESS:
+					tipTxt.text = "重连成功！";
+					break;
 			}
-			addChild(tipTxt);
 		}
 		
 		private function addTipBg():void

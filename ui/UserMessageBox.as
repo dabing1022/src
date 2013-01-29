@@ -149,6 +149,25 @@ package ui
 			
 			boxBg.bitmapData.dispose();
 			avarter.bitmapData.dispose();
+			handUp.bitmapData.dispose();
+			moneySymbol.bitmapData.dispose();
+			boxBg.bitmapData = null;
+			avarter.bitmapData = null;
+			handUp.bitmapData = null;
+			moneySymbol.bitmapData = null;
+			boxBg = null;
+			avarter = null;
+			handUp = null;
+			nickNameAndStatusTxt = null;
+			moneySymbol = null;
+			moneyTxt = null;
+			if(countDownTimer){
+				countDownTimer.stop();
+				countDownTimer.removeEventListener(TimerEvent.TIMER, onCountDownTimer);
+				countDownTimer = null;
+			}
+			countDownAnime.stop();
+			countDownAnime = null;
 			zSymbolAnime.stop();
 			zSymbolAnime = null;
 			removeEventListener(Event.REMOVED_FROM_STAGE, onRemoveFromStage);

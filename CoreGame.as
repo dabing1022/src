@@ -71,7 +71,6 @@ package
 		
 		private var point2beanPanel:ExchangePanel;
 		private var bean2pointPanel:ExchangePanel;
-		private var warnTipPanel:WarnTipPanel;
 		public function CoreGame()
 		{
 			super();
@@ -101,6 +100,7 @@ package
 			this.addEventListener(ExchangeEvent.BEAN_TO_POINT, onAskForExchangeHandler);
 			this.addEventListener(ExchangeEvent.CONFIRM_POINT_TO_BEAN, onConfirmExchange);
 			this.addEventListener(ExchangeEvent.CONFIRM_BEAN_TO_POINT, onConfirmExchange);
+			this.addEventListener(ExchangeEvent.CANCEL, onCancelExchange);
 		}
 		
 		private function sendMsgByJsEnter():void{
@@ -170,18 +170,19 @@ package
 			heartBeat = getTimer();
 			socketConnected = true;
 			reconnect = true;
+			isTryingConnect = false;
 		}
 		
 		
 		private var socketConnected:Boolean = false;
 		private function onSignTimer(e:TimerEvent):void{
 			try{
-				sendLoginBySign();
-				releaseSignTimer();
-				if(!socketConnected){
-					connectServer();
-					CommunicateUtils.getInstance().sendMessage(socket, Command.HEARTBEAT, "", false);
+				if(socketConnected){
+					sendLoginBySign();
+					releaseSignTimer();
 				}
+				connectServer();
+				CommunicateUtils.getInstance().sendMessage(socket,Command.HEARTBEAT,"",false);
 			}catch(e:Error){
 				DebugConsole.addDebugLog(stage, "SignTimer发生错误...");
 			}
@@ -218,27 +219,48 @@ package
 			}
 			return socket;
 		}
-	
+		
 		private function onConnect(e:Event):void{
+			reconnect = true;
 			DebugConsole.addDebugLog(stage, "连接服务器成功！");
 		}
 		
 		/**在服务器关闭套接字连接时调度*/
+		private var delayShowOfflineTipTimer:Timer;
 		private function onClose(e:Event):void{
 			SimpleTip.getInstance().hide();
 			//3s后显示断线警告框
-			var timer:Timer = new Timer(3000, 1);
-			timer.addEventListener(TimerEvent.TIMER, onShowWarnOffline);
-			timer.start();
+			if(delayShowOfflineTipTimer == null){
+				delayShowOfflineTipTimer = new Timer(3000, 1);
+				delayShowOfflineTipTimer.addEventListener(TimerEvent.TIMER, onShowWarnOffline);
+				delayShowOfflineTipTimer.start(); 
+			}
 			
 			DebugConsole.addDebugLog(stage, "Socket连接关闭！");
 			tryReconnect();
 		}
 		
+		private var warnOffLine:WarnTipPanel;
 		private function onShowWarnOffline(e:TimerEvent):void{
-			(e.target as Timer).removeEventListener(TimerEvent.TIMER, onShowWarnOffline);
-			var warnOffLine:WarnTipPanel = new WarnTipPanel(WarnTipPanel.OFFLINE);
+			releaseDelayShowOfflineTimer();
+			
+			warnOffLine = new WarnTipPanel(WarnTipPanel.OFFLINE);
 			addChild(warnOffLine);
+		}
+		
+		private function releaseDelayShowOfflineTimer():void{
+			if(delayShowOfflineTipTimer){
+				delayShowOfflineTipTimer.stop();
+				delayShowOfflineTipTimer.removeEventListener(TimerEvent.TIMER, onShowWarnOffline);
+				delayShowOfflineTipTimer = null;
+			}
+		}
+		
+		private function removeWarnOffline():void{
+			if(warnOffLine && this.contains(warnOffLine)){
+				removeChild(warnOffLine);
+				warnOffLine = null;
+			}
 		}
 		
 		/**在出现输入/输出错误并导致发送或加载操作失败时调度*/
@@ -251,7 +273,7 @@ package
 		private function onSecurityError(e:SecurityErrorEvent):void{
 			DebugConsole.addDebugLog(stage, "安全沙箱或端口低于1024错误...");
 		}
-			
+		
 		private var len:int = 0;
 		private var cmd:String = "";
 		private var content:String = "";
@@ -384,8 +406,6 @@ package
 			addChild(warnTipPanel);
 		}
 		
-		
-		
 		private function onConfirmPointToBean(content:String):void
 		{
 			SimpleTip.getInstance().hide();
@@ -401,10 +421,14 @@ package
 		}
 		
 		private function hideExchangePanel():void{
-			if(point2beanPanel && this.contains(point2beanPanel))
+			if(point2beanPanel && this.contains(point2beanPanel)){
 				removeChild(point2beanPanel);
-			if(bean2pointPanel && this.contains(bean2pointPanel))
+				point2beanPanel = null;
+			}
+			if(bean2pointPanel && this.contains(bean2pointPanel)){
 				removeChild(bean2pointPanel);
+				bean2pointPanel = null;
+			}
 		}
 		
 		private function onBeanToPoint(content:String):void{
@@ -414,9 +438,13 @@ package
 			var beanNum:int = obj.beanNum;
 			var rateNum:int = obj.rateNum;
 			
-			if(point2beanPanel && point2beanPanel.parent)
+			if(point2beanPanel && point2beanPanel.parent){
 				removeChild(point2beanPanel);
-			bean2pointPanel = new ExchangePanel(ExchangePanel.BEAN_TO_POINT, nickName, pointNum, beanNum, rateNum);
+				point2beanPanel = null;
+			}
+			if(bean2pointPanel == null){
+				bean2pointPanel = new ExchangePanel(ExchangePanel.BEAN_TO_POINT, nickName, pointNum, beanNum, rateNum);
+			}
 			addChild(bean2pointPanel);
 			bean2pointPanel.x = Const.WIDTH - bean2pointPanel.width >> 1;
 			bean2pointPanel.y = Const.HEIGHT - bean2pointPanel.height >> 1;
@@ -429,9 +457,13 @@ package
 			var beanNum:int = obj.beanNum;
 			var rateNum:int = obj.rateNum;
 			
-			if(bean2pointPanel && bean2pointPanel.parent)
+			if(bean2pointPanel && bean2pointPanel.parent){
 				removeChild(bean2pointPanel);
-			point2beanPanel = new ExchangePanel(ExchangePanel.POINT_TO_BEAN, nickName, pointNum, beanNum, rateNum);
+				bean2pointPanel = null;				
+			}
+			if(point2beanPanel == null){
+				point2beanPanel = new ExchangePanel(ExchangePanel.POINT_TO_BEAN, nickName, pointNum, beanNum, rateNum);
+			}
 			addChild(point2beanPanel);
 			point2beanPanel.x = Const.WIDTH - point2beanPanel.width >> 1;
 			point2beanPanel.y = Const.HEIGHT - point2beanPanel.height >> 1;
@@ -444,10 +476,15 @@ package
 			Data.getInstance().player.username = obj.username;
 			Data.getInstance().player.money = obj.userCoin;
 			Data.getInstance().player.pid = obj.pid;
+			isTryingConnect = false;
 		}
 		
 		private function onOfflineResumeGame(content:String):void{
 			DebugConsole.addDebugLog(stage, "~~~Command.OFFLINE_RESUME_GAME");
+			removeWarnOffline();
+			if(gamingScreen && this.contains(gamingScreen))
+				clearGamingScreen();
+			
 			var obj:Object = com.adobe.serialization.json.JSON.decode(content);
 			var usersInfoList:Array = obj as Array;
 			Data.getInstance().usersInfoList2gamingPlayersList(usersInfoList);
@@ -455,10 +492,12 @@ package
 			Data.getInstance().updateMyselfInArr(usersInfoList);
 			gamingScreen.updateMsgsUserData(usersInfoList);
 			gamingScreen.initOfflineLoginView(usersInfoList);
+				
 			if(Data.getInstance().player.state == UserData.USER_WATCH){
 				DebugConsole.addDebugLog(stage, "玩家本人以观察者身份进入，进入观看状态...");
 				gamingScreen.initWatcherView(usersInfoList);
 			}
+			
 			DebugConsole.addDebugLog(stage, "玩家已经恢复游戏...");
 			breakLine = false;
 		}
@@ -573,7 +612,7 @@ package
 			creatRoom(roomObj);
 		}
 		
-        //当玩家从牌桌离开后通知牌桌内的其他玩家
+		//当玩家从牌桌离开后通知牌桌内的其他玩家
 		private function onPlayerLeaveTable(content:String):void{
 			DebugConsole.addDebugLog(stage, "~~~Command.PLAYER_LEAVE_TABLE");
 			var obj:Object = com.adobe.serialization.json.JSON.decode(content);
@@ -858,6 +897,11 @@ package
 			addWelcomeScreen();
 		}
 		
+		private function onCancelExchange(e:ExchangeEvent):void{
+			SimpleTip.getInstance().hide();
+			hideExchangePanel();
+		}
+		
 		private function tempReleaseHallScreen():void{
 			removeChild(hallScreen);
 			hallScreen.removeEventListener(CustomEvent.BACK_TO_WELCOME, onBackToWelcomeHandler);
@@ -961,14 +1005,17 @@ package
 			DebugConsole.addDebugLog(stage, "玩家从欢迎界面发送选择房间命令到服务器..." + obj.nomalIn);
 		}
 		
-		
-		
 		private function onConfirmExchange(e:ExchangeEvent):void{
 			SimpleTip.getInstance().showTip(this, "正在处理兑换，请稍候...");
 			var obj:Object = {};
 			obj.username = Data.getInstance().player.username;
 			obj.pid = Data.getInstance().player.pid;
 			obj.account = e.exchangeNum;
+			if(gamingScreen && this.contains(gamingScreen)){
+				obj.isGamingExchange = true;
+			}else{
+				obj.isGamingExchange = false;
+			}
 			if(e.type == ExchangeEvent.CONFIRM_POINT_TO_BEAN){
 				CommunicateUtils.getInstance().sendMessage(socket, Command.CONFIRM_POINT_TO_BEAN, obj);
 			}else if(e.type == ExchangeEvent.CONFIRM_BEAN_TO_POINT){
@@ -978,7 +1025,7 @@ package
 		
 		private function onCommunicateError(event:ErrorEvent):void
 		{
-			DebugConsole.addDebugLog(stage, "连接服务器失败，重连中...");
+			DebugConsole.addDebugLog(stage, "通信出错，进行重连...");
 			tryReconnect();
 		}		
 		
@@ -1020,14 +1067,33 @@ package
 			isTryingConnect = true;
 			reconnect = false;
 			
+			clearSocket();
+			
 			DebugConsole.addDebugLog(stage, "重新连接中，请等待...");
 			reconnectTimer = new Timer(1000);
 			reconnectTimer.addEventListener(TimerEvent.TIMER, tryReconnectTimer);
 			reconnectTimer.start();
 		}
 		
+		private function clearSocket():void{
+			if(socket != null){
+				try{
+					socket.close();
+					socket.removeEventListener(Event.CONNECT, onConnect);
+					socket.removeEventListener(ProgressEvent.SOCKET_DATA, onSocketData);
+					socket.removeEventListener(Event.CLOSE, onClose);
+					socket.removeEventListener(IOErrorEvent.IO_ERROR, onIoError);
+					socket.removeEventListener(SecurityErrorEvent.SECURITY_ERROR, onSecurityError);
+					socket = null;
+				}catch(e:Error){
+					DebugConsole.addDebugLog(stage, "关闭socket出错...");
+				}
+			}
+		}
+		
 		private function onError(content:String):void{
 			SimpleTip.getInstance().hide();
+			var warnTipPanel:WarnTipPanel;
 			switch(content){
 				case ErrorCode.NO_USER:
 					DebugConsole.addDebugLog(stage, "错误！找不到此玩家！");
@@ -1042,6 +1108,8 @@ package
 					break;
 				case ErrorCode.USER_ON_LOGIN:
 					DebugConsole.addDebugLog(stage, "Error--user on login.");
+					warnTipPanel = new WarnTipPanel(WarnTipPanel.RECONNECT_ERROR);
+					addChild(warnTipPanel);
 					break;
 				case ErrorCode.ROOM_CANNT_FIND:
 					DebugConsole.addDebugLog(stage, "Error--room cannot find.");
@@ -1070,27 +1138,36 @@ package
 					warnTipPanel = new WarnTipPanel(WarnTipPanel.EXCHANGE_ERROR);
 					addChild(warnTipPanel);
 					break;
+				case ErrorCode.RECONNECT_ERROR:
+					DebugConsole.addDebugLog(stage, "重连失败！");
+					warnTipPanel = new WarnTipPanel(WarnTipPanel.RECONNECT_ERROR);
+					addChild(warnTipPanel);
+					break;
 			}
 		}
 		
 		private function tryReconnectTimer(e:TimerEvent):void{
 			if(!reconnect){//重连没连上
 				try{
+					DebugConsole.addDebugLog(stage, "重连还没连上，重连中...");
 					connectServer();
 					CommunicateUtils.getInstance().sendMessage(socket,Command.HEARTBEAT,"",false);
 				}catch(e:Error){}
 			}else{//重连连接上
+				DebugConsole.addDebugLog(stage, "重连连接上了...");
 				reconnectTimer.removeEventListener(TimerEvent.TIMER,tryReconnectTimer);
 				reconnectTimer.stop();
 				reconnectTimer = null;
 				
+				releaseDelayShowOfflineTimer();
+				removeWarnOffline();
+				
 				var obj:Object = {};
-				//如果存在sign登录
-//				var s:String = stage.loaderInfo.parameters["sign"];
-//				obj.sign = s;
 				obj.username = Data.getInstance().player.username;
 				obj.pid = Data.getInstance().player.pid;
+				isTryingConnect = false;
 				CommunicateUtils.getInstance().sendMessage(socket, Command.RECONNECT, obj);
+				DebugConsole.addDebugLog(stage, "sendMessage-username:" + obj.username + ", pid:" + obj.pid);
 			}
 		}
 		

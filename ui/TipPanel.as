@@ -105,9 +105,9 @@ package ui
 			tipTF = new TextFormat("Verdana", 18, 0xffff00, true);
 			tipTF.align = TextFormatAlign.CENTER;
 			tipTxt.defaultTextFormat = tipTF;
-			tipTxt.x = tipBg.x + 45;
+			tipTxt.x = tipBg.x + 10;
 			tipTxt.y = tipBg.y + 36;
-			tipTxt.width = 320;
+			tipTxt.width = tipBg.bitmapData.width;
 			tipTxt.height = 28;
 			tipTxt.wordWrap = false;
 			addChild(tipTxt);

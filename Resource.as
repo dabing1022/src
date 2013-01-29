@@ -59,8 +59,8 @@ package
 		public static const CARD_D12:String = "CardD12";
 		public static const CARD_D13:String = "CardD13";
         /**大鬼和小鬼*/
-		public static const CARD_G1:String = "CardG1";
-		public static const CARD_G2:String = "CardG2";
+		public static const CARD_G1:String = "CardG1";//小鬼
+		public static const CARD_G2:String = "CardG2";//大鬼
         /**背面牌*/
 		public static const BACK_CARD:String = "BackCard";
 		

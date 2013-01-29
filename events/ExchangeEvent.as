@@ -11,6 +11,7 @@ package events
 		public static const BEAN_TO_POINT:String = "beanToPoint";
 		public static const CONFIRM_POINT_TO_BEAN:String = "confirmPointToBean";
 		public static const CONFIRM_BEAN_TO_POINT:String = "confirmBeanToPoint";
+		public static const CANCEL:String = "cancel";
 		public var exchangeNum:int;
 		public function ExchangeEvent(type:String, exchangeNum:int = 0, bubbles:Boolean=false, cancelable:Boolean=false)
 		{

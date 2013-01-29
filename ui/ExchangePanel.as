@@ -22,6 +22,7 @@ package ui
 	 * */
 	public class ExchangePanel extends Sprite
 	{
+		private var bg:Shape;
 		private var bgPanel:Bitmap;
 		private var cancelBtn:AnimeButton;
 		private var exchangeConfirmBtn:AnimeButton;
@@ -67,6 +68,7 @@ package ui
 			removeEventListener(Event.ADDED_TO_STAGE, onAddedToStage);
 			addEventListener(Event.REMOVED_FROM_STAGE, onRemoveFromStage);
 			
+			addBg();
 			addBgPanel();
 			addText();
 			addCancelBtn();
@@ -76,11 +78,19 @@ package ui
 			addEventListeners();
 		}
 		
+		private function addBg():void{
+			bg = new Shape();
+			bg.graphics.beginFill(0x000000, 0.1);
+			bg.graphics.drawRect(0, 0, Const.WIDTH, Const.HEIGHT);
+			bg.graphics.endFill();
+			addChild(bg);
+		}
+		
 		private function addCalculate():void
 		{
 			calculateBg = new Shape();
 			calculateBg.graphics.beginFill(0xff3300, 0.3);
-			calculateBg.graphics.drawRoundRect(70, 168, 172, 18, 4, 4);
+			calculateBg.graphics.drawRoundRect(bgPanel.x + 70, bgPanel.y + 168, 172, 18, 4, 4);
 			calculateBg.graphics.endFill();
 			addChild(calculateBg);
 			calculateBg.visible = false;
@@ -90,8 +100,8 @@ package ui
 			calculateKedui.text = "可兑";
 			calculateKedui.textColor = 0xa2e700;
 			addChild(calculateKedui);
-			calculateKedui.x = 76;
-			calculateKedui.y = 168;
+			calculateKedui.x = bgPanel.x + 76;
+			calculateKedui.y = bgPanel.y + 168;
 			calculateKedui.visible = false;
 			
 			calculateHuobi = new TextField();
@@ -102,15 +112,15 @@ package ui
 				calculateHuobi.text = "金币";
 			calculateHuobi.textColor = 0xa2e700;
 			addChild(calculateHuobi);
-			calculateHuobi.x = 198;
-			calculateHuobi.y = 168;
+			calculateHuobi.x = bgPanel.x + 198;
+			calculateHuobi.y = bgPanel.y + 168;
 			calculateHuobi.visible = false;
 			
 			calculateNum = new TextField();
 			calculateNum.defaultTextFormat = tf;
 			addChild(calculateNum);
-			calculateNum.x = 120;
-			calculateNum.y = 168;
+			calculateNum.x = bgPanel.x + 120;
+			calculateNum.y = bgPanel.y + 168;
 			calculateNum.width = 92;
 			calculateNum.height = 20;
 			calculateNum.visible = false;
@@ -119,8 +129,8 @@ package ui
 		private function addWarnStuff():void{
 			warnBox = new Sprite();
 			addChild(warnBox);
-			warnBox.x = 182;
-			warnBox.y = 108;
+			warnBox.x = bgPanel.x + 182;
+			warnBox.y = bgPanel.y + 108;
 			warnBox.alpha = 0;
 			
 			warnBg = new Shape();
@@ -144,7 +154,7 @@ package ui
 		{
 			cancelBtn = new AnimeButton(ResourceUtils.getBitmapData(Resource.CANCEL_BUTTON1),
 				ResourceUtils.getBitmapData(Resource.CANCEL_BUTTON2),
-				ResourceUtils.getBitmapData(Resource.CANCEL_BUTTON1), 124, 286);
+				ResourceUtils.getBitmapData(Resource.CANCEL_BUTTON1), bgPanel.x + 124, bgPanel.y + 286);
 			addChild(cancelBtn);
 		}
 		
@@ -155,8 +165,8 @@ package ui
 			
 			panelDiscriptionTxt = new TextField();
 			panelDiscriptionTxt.defaultTextFormat = tf;
-			panelDiscriptionTxt.x = 29;
-			panelDiscriptionTxt.y = 72;
+			panelDiscriptionTxt.x = bgPanel.x + 29;
+			panelDiscriptionTxt.y = bgPanel.y + 72;
 			panelDiscriptionTxt.width = 265;
 			panelDiscriptionTxt.height = 80;
 			panelDiscriptionTxt.type = TextFieldType.DYNAMIC;
@@ -168,8 +178,8 @@ package ui
 			
 			exchangeDiscriptionTxt = new TextField();
 			exchangeDiscriptionTxt.defaultTextFormat = tf;
-			exchangeDiscriptionTxt.x = 29;
-			exchangeDiscriptionTxt.y = 185;
+			exchangeDiscriptionTxt.x = bgPanel.x + 29;
+			exchangeDiscriptionTxt.y = bgPanel.y + 185;
 			exchangeDiscriptionTxt.width = 285;
 			exchangeDiscriptionTxt.height = 20;
 			exchangeDiscriptionTxt.type = TextFieldType.DYNAMIC;
@@ -182,8 +192,8 @@ package ui
 			
 			exchangeNumTxt = new TextField();
 			exchangeNumTxt.textColor = 0xffffff;
-			exchangeNumTxt.x = 120;
-			exchangeNumTxt.y = 145;
+			exchangeNumTxt.x = bgPanel.x + 120;
+			exchangeNumTxt.y = bgPanel.y + 145;
 			exchangeNumTxt.width = 108;
 			exchangeNumTxt.height = 21;
 			exchangeNumTxt.restrict = "0-9";
@@ -196,7 +206,7 @@ package ui
 		{
 			exchangeConfirmBtn = new AnimeButton(ResourceUtils.getBitmapData(Resource.GAMING_CHARGE_CONFIRM_BUTTON1),
 				ResourceUtils.getBitmapData(Resource.GAMING_CHARGE_CONFIRM_BUTTON2),
-				ResourceUtils.getBitmapData(Resource.GAMING_CHARGE_CONFIRM_BUTTON1), 244, 134);
+				ResourceUtils.getBitmapData(Resource.GAMING_CHARGE_CONFIRM_BUTTON1), bgPanel.x + 244, bgPanel.y + 134);
 			addChild(exchangeConfirmBtn);
 		}
 		
@@ -208,6 +218,8 @@ package ui
 				bgPanel = ResourceUtils.getBitmap(Resource.BEAN_TO_POINT_PANEL_BG);
 			}
 			addChild(bgPanel);
+			bgPanel.x = Const.WIDTH - bgPanel.bitmapData.width >> 1;
+			bgPanel.y = Const.HEIGHT - bgPanel.bitmapData.height >> 1;
 		}		
 		
 		private function addEventListeners():void{
@@ -226,14 +238,14 @@ package ui
 					calculateNum.text = int(int(exchangeNumTxt.text) * _rateNum).toString();
 					if(int(calculateNum.text) > 50000000){
 						warnTxt.text = "最多兑换5000万游戏豆";
-						TweenLite.from(warnBox, 1, {y:80, alpha:1, onComplete:hideWarnBox});
+						TweenLite.from(warnBox, 1, {y:bgPanel.y + 80, alpha:1, onComplete:hideWarnBox});
 					}
 				}
 				else if(_type == BEAN_TO_POINT){
 					calculateNum.text = int(int(exchangeNumTxt.text) / _rateNum).toString();
 					if(int(exchangeNumTxt.text) > 50000000){
 						warnTxt.text = "最多兑换5000万游戏豆";
-						TweenLite.from(warnBox, 1, {y:80, alpha:1, onComplete:hideWarnBox});
+						TweenLite.from(warnBox, 1, {y:bgPanel.y + 80, alpha:1, onComplete:hideWarnBox});
 					}
 				}
 			}else{
@@ -243,25 +255,23 @@ package ui
 		
 		private function onCancelHandler(event:MouseEvent):void
 		{
-			if(this.parent){
-				this.parent.removeChild(this);
-			}
+			dispatchEvent(new ExchangeEvent(ExchangeEvent.CANCEL, 0, true));
 		}
 		
 		private function onExchangeConfirm(event:MouseEvent):void
 		{
 			if(exchangeNumTxt.text == ""){
 				warnTxt.text = "请输入兑换";
-				TweenLite.from(warnBox, 1, {y:80, alpha:1, onComplete:hideWarnBox});
+				TweenLite.from(warnBox, 1, {y:bgPanel.y + 80, alpha:1, onComplete:hideWarnBox});
 			}else if(int(exchangeNumTxt.text) % 1000 != 0){
 				warnTxt.text = "请输入1000的倍数";
-				TweenLite.from(warnBox, 1, {y:80, alpha:1, onComplete:hideWarnBox});
+				TweenLite.from(warnBox, 1, {y:bgPanel.y + 80, alpha:1, onComplete:hideWarnBox});
 			}else{
 				if(_type == POINT_TO_BEAN){
 					calculateNum.text = (int(exchangeNumTxt.text) * _rateNum).toString();
 					if(int(calculateNum.text) > 50000000){
 						warnTxt.text = "最多兑换5000万游戏豆";
-						TweenLite.from(warnBox, 1, {y:80, alpha:1, onComplete:hideWarnBox});
+						TweenLite.from(warnBox, 1, {y:bgPanel.y + 80, alpha:1, onComplete:hideWarnBox});
 						return;
 					}
 					dispatchEvent(new ExchangeEvent(ExchangeEvent.CONFIRM_POINT_TO_BEAN, int(exchangeNumTxt.text), true));
@@ -269,7 +279,7 @@ package ui
 				else{
 					if(int(exchangeNumTxt.text) > 50000000){
 						warnTxt.text = "最多兑换5000万游戏豆";
-						TweenLite.from(warnBox, 1, {y:80, alpha:1, onComplete:hideWarnBox});
+						TweenLite.from(warnBox, 1, {y:bgPanel.y + 80, alpha:1, onComplete:hideWarnBox});
 						return;
 					}
 					var exchangePoint:int = int(exchangeNumTxt.text) / _rateNum;
@@ -280,7 +290,7 @@ package ui
 		
 		private function hideWarnBox():void{
 			if(warnBox)
-				TweenLite.to(warnBox, 2, {y:108, alpha:0});
+				TweenLite.to(warnBox, 2, {y:bgPanel.y + 108, alpha:0});
 		}
 		
 		private function onRemoveFromStage(event:Event):void
@@ -300,6 +310,9 @@ package ui
 			bgPanel.bitmapData.dispose();
 			bgPanel.bitmapData = null;
 			bgPanel = null;
+			
+			bg.graphics.clear();
+			bg = null;
 			
 			cancelBtn.dispose();
 			exchangeConfirmBtn.dispose();

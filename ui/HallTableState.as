@@ -95,7 +95,7 @@ package ui
 			table = null;
 			gamingNiuLogo = null;
 
-			handUpList.splice(0, handUpList.length);
+			handUpList.splice(0, handUpList.length);	
 			handUpList = null;
 		}
 		

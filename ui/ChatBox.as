@@ -24,6 +24,7 @@ package ui
 	import model.ChatData;
 	import model.Data;
 	
+	import utils.DebugConsole;
 	import utils.ResourceUtils;
 	
 	public class ChatBox extends Sprite
@@ -41,12 +42,10 @@ package ui
         /**快捷回复列表*/
 		private var listCompo:List;
 		private var dp:DataProvider;
-		private var chatData:ChatData;
 		private var tf:TextFormat;
 		public function ChatBox()
 		{
 			super();
-			chatData = Data.getInstance().chatData;
 			addEventListener(Event.ADDED_TO_STAGE, onAddedToStage);
 		}
 		
@@ -182,22 +181,22 @@ package ui
 			if(inputTxt.text == "" || inputTxt.text.length == 0){
 				textArea.htmlText += "<font color='#ffff00' size='13'>提示：</font><font color='#ffffff' size='13'>您输入的内容不能为空！</font>\n";
 			}else{
-				if(getTimer() - chatData.lastSendTime < ChatData.MIN_TIME_INTERVAL){
+				if(getTimer() - Data.getInstance().chatData.lastSendTime < ChatData.MIN_TIME_INTERVAL){
 					textArea.htmlText += "<font color='#ffff00' size='13'>提示：</font></font><font color='#ffffff' size='13'>您发言过快，请稍等！</font>\n";
 				}else{
 					dispatchEvent(new UserEvent(UserEvent.NOMAL_CHAT, inputTxt.text, true));
 				}
 				inputTxt.text = "";
-				chatData.lastSendTime = getTimer();
+				Data.getInstance().chatData.lastSendTime = getTimer();
 			}
 			textArea.verticalScrollPosition = textArea.maxVerticalScrollPosition;
 		}
 		
 		private function onChatDataChange(e:ChatEvent):void{
-			var msgObject:Object = chatData.getLastMessage();
-			var msg:String = "<font color='#99FF00' size='13'>"+msgObject.nickName+"</font>" 
+			var msgObject:Object = Data.getInstance().chatData.getLastMessage();
+			var msg:String = "<font color='#99FF00' size='13'>"+ msgObject.nickName + "</font>" 
 				+ "<font color='#99FF00' size='13'>: </font>" 
-				+ "<font color='#FFFFFF' size='13'>"+msgObject.message+"</font>";
+				+ "<font color='#FFFFFF' size='13'>" + msgObject.message + "</font>";
 			textArea.htmlText += msg;
 			textArea.verticalScrollPosition = textArea.maxVerticalScrollPosition;
 		}
@@ -226,7 +225,7 @@ package ui
 			fastReplyBtn.addEventListener(MouseEvent.CLICK, onFastReply);
 			sendMessageBtn.addEventListener(MouseEvent.CLICK, onSendMessage);
 			listCompo.addEventListener(ListEvent.ITEM_CLICK, onClickListItem);
-			chatData.addEventListener(ChatEvent.DATA_CHANGE, onChatDataChange);
+			Data.getInstance().chatData.addEventListener(ChatEvent.DATA_CHANGE, onChatDataChange);
 			addEventListener(Event.REMOVED_FROM_STAGE, onRemoveFromStage);
 		}
 
@@ -235,7 +234,7 @@ package ui
             fastReplyBtn.removeEventListener(MouseEvent.CLICK, onFastReply);
             sendMessageBtn.removeEventListener(MouseEvent.CLICK, onSendMessage);
             listCompo.removeEventListener(ListEvent.ITEM_CLICK, onClickListItem);
-			chatData.removeEventListener(ChatEvent.DATA_CHANGE, onChatDataChange);
+			Data.getInstance().chatData.removeEventListener(ChatEvent.DATA_CHANGE, onChatDataChange);
 			removeEventListener(Event.REMOVED_FROM_STAGE, onRemoveFromStage);
         }
 	}

@@ -731,6 +731,7 @@ package ui
 		public function getReady():void{
 			reset();
 			myMessageBox.showHandUp();
+			removeRatioBoxes();
 			//移除赢的钱
 			removeWinRatioBoxes();
 			//移除结果面板
@@ -794,6 +795,10 @@ package ui
 					Data.getInstance().Z_PosId = chairIdToPosId(userList[i].chairId);
 					continue;
 				}
+				if(userList[i].username == Data.getInstance().player.username && userList[i].state == UserData.USER_WAIT_BET){
+					placeRatioBox();
+					continue;
+				}
 				if(userList[i].state == UserData.USER_BET || userList[i].state == UserData.USER_WAIT_SHOWCARDS
 					|| userList[i].state == UserData.USER_SHOWCARDS){
 					DebugConsole.addDebugLog(stage, "玩家关闭浏览器重新进入显示下注信息...");
@@ -801,17 +806,18 @@ package ui
 				}
 			}
 			
-			//02.如果玩家已发牌，但未亮牌，则显示背面牌
+			//02.如果玩家已发牌，但只要有玩家未亮牌，除下玩家自己，则显示背面牌
 			var cardsBackShow:CardsBackShow;
 			var playersNum:uint = 8;
 			var posId:uint;
+			var somebodyWaitShowCards:Boolean = checkSomebodyWaitShowCards(userList);
 			for(j = 0; j < len; j++){
-				if(userList[j].state == UserData.USER_WAIT_SHOWCARDS){
+				if(somebodyWaitShowCards){
 					posId = chairIdToPosId(userList[j].chairId);
 					var userCard:UserCard;
-					if(userList[j].username == Data.getInstance().player.username){
+					if(userList[j].username == Data.getInstance().player.username && userList[j].state == UserData.USER_WAIT_SHOWCARDS){
+						var cardsArr:Array = userList[j].cards;
 						for(i = 0; i < 5; i++){
-							var cardsArr:Array = userList[j].cards;
 							var cardData:CardData = new CardData(cardsArr[i].color, cardsArr[i].value);
 							userCard = new UserCard(cardData, true);
 							addChild(userCard);
@@ -824,7 +830,18 @@ package ui
 						}
 						myCardsBg.visible = true;
 						showCardsTipBtn.visible = showCardsConfirmBtn.visible = true;
+						DebugConsole.addDebugLog(stage, "已经恢复玩家本人未亮牌...");
+					}else if(userList[j].username == Data.getInstance().player.username && userList[j].state == UserData.USER_SHOWCARDS){
+						cardResultShowBox = new CardsResultShowBox(userList[i].cardsSize, userList[i].showCards, true);
+						addChild(cardResultShowBox);
+						cardResultShowBox.x = Const.CARDS_COORD[3].x + 40;
+						cardResultShowBox.y = Const.CARDS_COORD[3].y;
+						myCardsBg.visible = true;
+						this.swapChildren(cardResultShowBox, pleaseGetReadyBtn);
+						DebugConsole.addDebugLog(stage, "已经恢复玩家本人亮的牌...");
 					}else{
+						if(userList[j].state == UserData.USER_WATCH)
+							continue;
 						for(k = 0; k < 5; k++){
 							userCard = new UserCard(null, false);
 							addChild(userCard);
@@ -832,9 +849,13 @@ package ui
 							userCard.y = Const.CARDS_COORD[posId].y;
 							othersCardsVec.push(userCard);
 						}
+						DebugConsole.addDebugLog(stage, "已经恢复其他玩家背面牌...");
 					}
 				}
 			}
+			
+			if(somebodyWaitShowCards)
+				return;
 			
 			//03.如果玩家已亮牌，则显示亮牌
 			for(i = 0; i < len; i++){
@@ -861,6 +882,15 @@ package ui
 			}
 		}
 		
+		private function checkSomebodyWaitShowCards(userList:Array):Boolean{
+			var len:uint = userList.length;
+			for(var i:uint = 0; i < len; i++){
+				if(userList[i].state == UserData.USER_WAIT_SHOWCARDS)
+					return true;
+			}
+			return false;
+		}
+		
 		public function initWatcherView(userList:Array):void{
 			var len:int = userList.length;
 			var i:int;
@@ -880,9 +910,12 @@ package ui
 			//02.如果玩家已发牌，但未亮牌，则显示背面牌
 			var posId:int;
 			var cardsBackShow:CardsBackShow;
+			var somebodyWaitShowCards:Boolean = checkSomebodyWaitShowCards(userList);
 			for(i = 0; i < len; i++){
-				if(userList[i].state == UserData.USER_WAIT_SHOWCARDS){
+				if(somebodyWaitShowCards){
 					DebugConsole.addDebugLog(stage, "玩家本人为观看者，展示正在玩的玩家的牌背面...");
+					if(userList[i].state == UserData.USER_WATCH)
+						continue;
 					posId = chairIdToPosId(userList[i].chairId);
 					cardsBackShow = new CardsBackShow();
 					addChild(cardsBackShow);
@@ -891,6 +924,9 @@ package ui
 					cardsBackInWatcherViewList.push(cardsBackShow);
 				}
 			}
+			
+			if(somebodyWaitShowCards)
+				return;
 			
 			//03.如果玩家已亮牌，则显示亮牌
 			for(i = 0; i < len; i++){	
@@ -1007,9 +1043,9 @@ package ui
 		 * @param cards:Vector.<UserCard> 用户牌数组
 		 * */
 		public function showDecisionCards(type:uint, cards:Vector.<UserCard> = null, timeUp:Boolean = false):void{
+			removeSystemSendsCards();
 			if(type == 1 && !confirmLock){
 				confirmLock = true;
-				removeSystemSendsCards();
 				cardAnalysis = CardUtils.getInstance().analysisCards(Data.getInstance().player.cards);
 				var popNum:uint = cards.length;
 				var i:uint;
@@ -1093,7 +1129,6 @@ package ui
 				this.swapChildren(cardResultShowBox, pleaseGetReadyBtn);
 			}else if(type == 2 && !confirmLock){
 				confirmLock = true;
-				removeSystemSendsCards();
 				
 				soundName = Data.getInstance().player.sex == 0?"female" + CardType.NO_NIU:"male" + CardType.NO_NIU;
 				SoundManager.getInstance().playSound(soundName, false);

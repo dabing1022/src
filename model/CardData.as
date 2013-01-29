@@ -25,8 +25,8 @@ package model
 		public static const VJ:int = 11;
 		public static const VQ:int = 12;
 		public static const VK:int = 13;
-		public static const VG1:int = 14;
-		public static const VG2:int = 15;
+		public static const VG1:int = 14;//小鬼
+		public static const VG2:int = 15;//大鬼
 		
 		public var color:int;
 		public var value:int;

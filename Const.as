@@ -27,7 +27,7 @@ package
 		public static const FAST_REPLY3:String = "不要走，决战到黎明！";
 		public static const FAST_REPLY4:String = "哈哈哈，你们的钱马上就要到我的口袋里啦~~";
 		/**游戏豆不足*/
-		public static const MONEY_NOT_ENOUGH:String = "对不起，您的游戏豆不足，请充值。";
+		public static const MONEY_NOT_ENOUGH:String = "对不起，您的游戏豆不足，请兑换或充值。";
 		/**游戏中头像坐标位置*/
 		public static const USER_COORD:Array = [new Point(38, 48),
 												new Point(38, 228),
