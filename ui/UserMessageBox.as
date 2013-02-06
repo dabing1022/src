@@ -210,6 +210,7 @@ package ui
 		}
 		
 		private function onCountDownTimer(e:TimerEvent):void{
+			if(!countDownAnime)		return;
 			if(countDownAnime.visible && countDownAnime.currentFrame == countDownAnime.totalFrames){
 				switch(_userData.state){
 					case UserData.USER_WAIT_FOR_READY:
@@ -275,6 +276,7 @@ package ui
 		}
 		
 		private function onCountDownShowChange(e:UserEvent):void{
+			if(!countDownAnime)		return;
 			if(e.data.showCountDown == true){
 				countDownAnime.visible = true;
 				var index:uint = 300 - 300 * (_userData.remainCountDownTime / _userData.totalCountTime);

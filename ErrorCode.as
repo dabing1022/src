@@ -26,6 +26,8 @@ package
 		public static const EXCHANGE_SHORTAGE:String = "er012";
 		/**兑换失败，请稍后再试*/
 		public static const EXCHANGE_ERROR:String = "er013";
+		/**webservice服务器忙，请稍候正忙*/
+		public static const EXCHANGE_BUSY:String = "er014";
 
 	}
 }

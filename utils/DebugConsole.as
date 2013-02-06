@@ -13,7 +13,7 @@ package utils
 	{
 		private static var debug:TextArea;
 		private static var lineNo:uint;
-		private static var isDebug:Boolean = true;
+		private static var isDebug:Boolean = false;
 		private static var _stage:Stage;
 		public function DebugConsole(stage:Stage = null):void
 		{
@@ -26,6 +26,10 @@ package utils
 			if(debug){
 				debug.text += "\n" + lineNo + "-->" + info + "(" + getTimer() + ")";
 				lineNo ++;
+				if(lineNo == 350){
+					debug.text = "";
+					lineNo = 0;
+				}
 			}else{
 				debug = new TextArea(null, 200, 100);
 				debug.editable = false;

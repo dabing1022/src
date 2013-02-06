@@ -5,6 +5,11 @@ package events
 	public class CustomEvent extends Event
 	{
 		public static const PRELOAD_COMPLETE:String = "preload_complete";
+		//coreGame的欢迎界面准备完毕，可以在loading结束后显示了
+		public static const CORE_GAME_LOAD_COMPLETE:String = "coreGameLoadComplete";
+		//用户已经登陆
+		public static const USER_LOGINED:String = "userLogined";
+		
 		public static const BACK_TO_WELCOME:String = "back_to_welcome";
 		public static const CHOOSE_ROOM:String = "choose_room";
 		public static const CHOOSE_CHAIR:String = "choose_chair";

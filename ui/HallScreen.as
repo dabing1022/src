@@ -43,6 +43,7 @@ package ui
 		private var chargeBtn:AnimeButton;
 		private var systemHelpBtn:AnimeButton;
 		private var systemBackToWelcomBtn:AnimeButton;
+		private var chatByQQBtn:AnimeButton;
 		
 		private var scrollPaneBg:Shape;
 		public var scrollPane:ScrollPane;
@@ -94,12 +95,20 @@ package ui
 			chargeBtn.y = 8;
 			
 			//加入收藏
-			addRepoBtn = new AnimeButton(ResourceUtils.getBitmapData(Resource.ADD_REPO_BUTTON1),
+			/*addRepoBtn = new AnimeButton(ResourceUtils.getBitmapData(Resource.ADD_REPO_BUTTON1),
 										 ResourceUtils.getBitmapData(Resource.ADD_REPO_BUTTON2),
 				                         ResourceUtils.getBitmapData(Resource.ADD_REPO_BUTTON1));
 			addChild(addRepoBtn);
 			addRepoBtn.x = 860;
-			addRepoBtn.y = 8;
+			addRepoBtn.y = 8;*/
+			
+			//客服qq交谈
+			chatByQQBtn = new AnimeButton(ResourceUtils.getBitmapData(Resource.CHAT_BY_QQ_BUTTON1),
+										  ResourceUtils.getBitmapData(Resource.CHAT_BY_QQ_BUTTON2),
+				                          ResourceUtils.getBitmapData(Resource.CHAT_BY_QQ_BUTTON1));
+			addChild(chatByQQBtn);
+			chatByQQBtn.x = 860;
+			chatByQQBtn.y = 8;
 			
 			addScrollPaneBg();
 			addScrollPane();
@@ -182,9 +191,15 @@ package ui
 			point2beanBtn.addEventListener(MouseEvent.CLICK, onExchangeHandler);
 			bean2pointBtn.addEventListener(MouseEvent.CLICK, onExchangeHandler);
 			chargeBtn.addEventListener(MouseEvent.CLICK, onChargeMoney);
-			addRepoBtn.addEventListener(MouseEvent.CLICK, onAddRepo);
+			//addRepoBtn.addEventListener(MouseEvent.CLICK, onAddRepo);
+			chatByQQBtn.addEventListener(MouseEvent.CLICK, onChatByQQHandler);
+			
 			systemHelpBtn.addEventListener(MouseEvent.CLICK, onSystemHelpHandler);
 			systemBackToWelcomBtn.addEventListener(MouseEvent.CLICK, onSystemBackToWelcomeHandler);
+		}
+		
+		private function onChatByQQHandler(event:MouseEvent):void{
+			Childhood.chatByQQ();
 		}
 		
 		private function onExchangeHandler(event:MouseEvent):void
@@ -210,7 +225,6 @@ package ui
 			}
 			Data.getInstance().player.roomId = 1;
 			setRoomButtonState();
-			PureTxtTip.getInstance().show(this, "正在连接房间服务器中......");
 		}
 		
 		private function onChooseGaojiRoomHandler(e:MouseEvent):void{
@@ -220,7 +234,6 @@ package ui
 			}
 			Data.getInstance().player.roomId = 2;
 			setRoomButtonState();
-			PureTxtTip.getInstance().show(this, "正在连接房间服务器中......");
 		}
 		
 		private function onChargeMoney(e:MouseEvent):void{

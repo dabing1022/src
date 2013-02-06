@@ -74,16 +74,5 @@ package ui
 			}
 			hallTableState.setState(TableData.NO_PLAYER);
 		}
-		
-		public function dispose():void{
-			removeChildren();
-			bg.bitmapData.dispose();
-			hallTableState.dispose();
-			bg.bitmapData = null;
-			bg = null;
-			hallTableState = null;
-			_tableIdTxt = null;
-			
-		}
 	}
 }

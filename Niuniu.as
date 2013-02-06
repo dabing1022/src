@@ -9,6 +9,7 @@ package
 	import flash.ui.ContextMenu;
 	import flash.ui.ContextMenuItem;
 	
+	import ui.Loading;
 	import ui.Preload;
 	import ui.SimpleTip;
 
@@ -17,7 +18,8 @@ package
 	{
 		private var preLoad:Preload;
 		private var coreGame:CoreGame;
-		private const VERSION:String = "欢乐斗牛内测版2013/01/29/10/56(调试开启)";
+		private var loadingAni:Loading;
+		private const VERSION:String = "欢乐斗牛公测版1.0.3";
 		public function Niuniu()
 		{
 			stage.scaleMode = StageScaleMode.NO_SCALE;
@@ -30,14 +32,44 @@ package
 		
 		private function onPreloadComplete(event:CustomEvent):void
 		{
+			coreGame = new CoreGame();
+			
+			var sign:String = this.stage.loaderInfo.parameters["sign"];
+			if(sign != ""){
+				if(loadingAni == null){
+					loadingAni = new Loading();
+					addChild(loadingAni);
+				}
+				
+				coreGame.visible = false;
+			}
+			
+			addChild(coreGame);
+			coreGame.addEventListener(CustomEvent.CORE_GAME_LOAD_COMPLETE, onCoreGameReady);
+			coreGame.addEventListener(CustomEvent.USER_LOGINED, onUserLogined);
+		}
+		
+		private function onCoreGameReady(e:CustomEvent=null):void{
+			releasePreloadAndLoadingAni();
+			
+			coreGame.visible = true;
+			coreGame.removeEventListener(CustomEvent.CORE_GAME_LOAD_COMPLETE, onCoreGameReady);
+			coreGame.removeEventListener(CustomEvent.USER_LOGINED, onUserLogined);
+		}
+		
+		private function onUserLogined(e:CustomEvent):void{
+			onCoreGameReady();
+		}
+		
+		private function releasePreloadAndLoadingAni():void{
 			removeChild(preLoad);
 			preLoad.removeEventListener(CustomEvent.PRELOAD_COMPLETE, onPreloadComplete);
 			preLoad.dispose();
 			preLoad = null;
 			
-			SimpleTip.getInstance().showTip(this, "登录中...");
-			coreGame = new CoreGame();
-			addChild(coreGame);
+			if(loadingAni && contains(loadingAni)){
+				removeChild(loadingAni);
+			}
 		}
 		
 		private function showRightClickMenu():void {

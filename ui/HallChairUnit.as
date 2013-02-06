@@ -86,20 +86,6 @@ package ui
 				_nickNameTxt.text = _playerData.nickName;
 			}
 		}
-		
-		public function dispose():void{
-			removeChildren();
-			_avatar.bitmapData.dispose();
-			_avatar.bitmapData = null;
-			_avatar = null;
-			
-			if(_nickNameTxt)
-				_nickNameTxt = null;
-			
-			this.removeEventListener(MouseEvent.MOUSE_OVER, onMouseOverHandler);
-			this.removeEventListener(MouseEvent.MOUSE_OUT, onMouseOutHandler);
-			this.removeEventListener(MouseEvent.CLICK, onClickChair);
-		}
 
 		public function get noPlayer():Boolean
 		{

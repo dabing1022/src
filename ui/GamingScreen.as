@@ -208,12 +208,14 @@ package ui
 				ResourceUtils.getBitmapData(Resource.SHOW_CARDS_TIP_BUTTON2),
 				ResourceUtils.getBitmapData(Resource.SHOW_CARDS_TIP_BUTTON1), 264, 498);
 			addChild(showCardsTipBtn);
+			showCardsTipBtn.focusRect = false;
 			showCardsTipBtn.visible = false;
 			
 			showCardsConfirmBtn = new AnimeButton(ResourceUtils.getBitmapData(Resource.SHOW_CARDS_CONFIRM_BUTTON1),
 				ResourceUtils.getBitmapData(Resource.SHOW_CARDS_CONFIRM_BUTTON2),
 				ResourceUtils.getBitmapData(Resource.SHOW_CARDS_CONFIRM_BUTTON1), 400, 498);
 			addChild(showCardsConfirmBtn);
+			showCardsConfirmBtn.focusRect = false;
 			showCardsConfirmBtn.visible = false;
 			
 			jiaoZBtn = new AnimeButton(ResourceUtils.getBitmapData(Resource.JIAO_Z_BUTTON1),
@@ -404,7 +406,7 @@ package ui
 						desPoint.x = mapUserToMsgBox[arr[i].username].x;
 						desPoint.y = mapUserToMsgBox[arr[i].username].y + 50;
 						mapUserNameToRatioBox[arr[i].username] = myRatioBox;
-						TweenLite.to(myRatioBox, 0.5, {x:desPoint.x, y:desPoint.y}); 
+						TweenLite.to(myRatioBox, 0.5, {x:desPoint.x, y:desPoint.y});
 					}
 				}
 				//显示亮的卡牌
@@ -455,7 +457,6 @@ package ui
 		
 		public function hideGetReadyBtn():void{
 			pleaseGetReadyBtn.visible = false;
-			getReady();
 		}
 		
 		private function onShowTipAndConfirmBtns(event:TimerEvent):void
@@ -832,7 +833,7 @@ package ui
 						showCardsTipBtn.visible = showCardsConfirmBtn.visible = true;
 						DebugConsole.addDebugLog(stage, "已经恢复玩家本人未亮牌...");
 					}else if(userList[j].username == Data.getInstance().player.username && userList[j].state == UserData.USER_SHOWCARDS){
-						cardResultShowBox = new CardsResultShowBox(userList[i].cardsSize, userList[i].showCards, true);
+						cardResultShowBox = new CardsResultShowBox(userList[j].cardsSize, userList[j].showCards, true);
 						addChild(cardResultShowBox);
 						cardResultShowBox.x = Const.CARDS_COORD[3].x + 40;
 						cardResultShowBox.y = Const.CARDS_COORD[3].y;
@@ -1199,7 +1200,6 @@ package ui
 					break;
 				case UserData.USER_WAIT_SHOWCARDS:
 					myCardsBg.visible = true;
-					showTipAndConfirmBtns();
 					hideJiaoZButton();
 					backToHallButton.visible = false;
 					break;

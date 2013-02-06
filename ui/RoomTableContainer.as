@@ -53,6 +53,7 @@ package ui
 			var len:uint = _roomData.players.length;
 			var tableId:uint;
 			var chairId:uint;
+			
 			for(i = 0; i < len; i++){
 				tableId = _roomData.players[i].tableId;
 				chairId = _roomData.players[i].chairId;
@@ -85,6 +86,13 @@ package ui
 			var tableId:uint = userData.tableId;
 			var chairId:uint = userData.chairId;
 			var userState:uint = userData.state;
+			
+			if(!Data.getInstance().roomMap.hasOwnProperty(roomId + "_" + tableId + "_" + chairId)){
+				return;
+			}
+			if(!Data.getInstance().tableStateMap.hasOwnProperty(roomId + "_" + tableId)){
+				return;
+			}
 			
             //通过玩家的tableId和chairId，用roomMap映射找到对应的板凳
 			var hallChairUnit:HallChairUnit = Data.getInstance().roomMap[roomId + "_" + tableId + "_" + chairId];

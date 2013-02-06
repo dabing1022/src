@@ -14,6 +14,7 @@ package ui
 	 * */
 	public class SimpleTip extends Sprite
 	{
+		private var bigBg:Shape;
 		private var bg:Shape;
 		private var tipTxt:TextField;
 		private var tipTF:TextFormat;
@@ -23,17 +24,23 @@ package ui
 		{
 			super();
 			
+			bigBg = new Shape();
+			bigBg.graphics.beginFill(0x111111, 0.02);
+			bigBg.graphics.drawRect(0, 0, Const.WIDTH, Const.HEIGHT);
+			bigBg.graphics.endFill();
+			addChild(bigBg);
+			
 			bg = new Shape();
-			bg.graphics.beginFill(0x555555);
-			bg.graphics.drawRoundRect(0, 0, 400, 100, 20, 20);
+			bg.graphics.beginFill(0x72211b);
+			bg.graphics.drawRoundRect(300, 290, 400, 100, 20, 20);
 			bg.graphics.endFill();
 			addChild(bg);
 			
 			tipTxt = new TextField();
 			tipTF = new TextFormat("Verdana", 18, 0xfff7e6, true);
 			with(tipTxt){
-				x = 10;
-				y = 30;
+				x = 300 + 10;
+				y = 290 + 30;
 				width = 370;
 				height = 56;
 				wordWrap = false;
@@ -41,8 +48,6 @@ package ui
 			}
 			addChild(tipTxt);
 			tipTxt.defaultTextFormat = tipTF;
-			this.x = 300;
-			this.y = 290;
 		}
 		
 		public function showTip(parent:DisplayObjectContainer, tip:String):void{

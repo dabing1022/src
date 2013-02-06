@@ -36,6 +36,7 @@ package ui
 		private var bean2pointBtn:AnimeButton;
 		private var addRepoBtn:AnimeButton;
 		private var chargeBtn:AnimeButton;
+		private var chatByQQBtn:AnimeButton;
 		
 		private var publicTestLogo:Bitmap;
 		public function WelcomeScreen()
@@ -105,12 +106,20 @@ package ui
 			chargeBtn.y = 8;
 			
 			//加入收藏
-			addRepoBtn = new AnimeButton(ResourceUtils.getBitmapData(Resource.ADD_REPO_BUTTON1),
+			/*addRepoBtn = new AnimeButton(ResourceUtils.getBitmapData(Resource.ADD_REPO_BUTTON1),
 									     ResourceUtils.getBitmapData(Resource.ADD_REPO_BUTTON2),
 				                         ResourceUtils.getBitmapData(Resource.ADD_REPO_BUTTON1));
 			addChild(addRepoBtn);
 			addRepoBtn.x = 860;
-			addRepoBtn.y = 8;
+			addRepoBtn.y = 8;*/
+			
+			//客服qq交谈
+			chatByQQBtn = new AnimeButton(ResourceUtils.getBitmapData(Resource.CHAT_BY_QQ_BUTTON1),
+				ResourceUtils.getBitmapData(Resource.CHAT_BY_QQ_BUTTON2),
+				ResourceUtils.getBitmapData(Resource.CHAT_BY_QQ_BUTTON1));
+			addChild(chatByQQBtn);
+			chatByQQBtn.x = 860;
+			chatByQQBtn.y = 8;
 			
 			publicTestLogo = ResourceUtils.getBitmap(Resource.PUBLIC_TEST_LOGO);
 			addChild(publicTestLogo);
@@ -139,7 +148,12 @@ package ui
 			point2beanBtn.addEventListener(MouseEvent.CLICK, onExchangeHandler);
 			bean2pointBtn.addEventListener(MouseEvent.CLICK, onExchangeHandler);
 			chargeBtn.addEventListener(MouseEvent.CLICK, onChargeMoney);
-			addRepoBtn.addEventListener(MouseEvent.CLICK, onAddRepo);
+			//addRepoBtn.addEventListener(MouseEvent.CLICK, onAddRepo);
+			chatByQQBtn.addEventListener(MouseEvent.CLICK, onChatByQQHandler);
+		}
+		
+		private function onChatByQQHandler(event:MouseEvent):void{
+			Childhood.chatByQQ();
 		}
 		
 		private function onExchangeHandler(event:MouseEvent):void
@@ -212,19 +226,24 @@ package ui
 			point2beanBtn.removeEventListener(MouseEvent.CLICK, onExchangeHandler);
 			bean2pointBtn.removeEventListener(MouseEvent.CLICK, onExchangeHandler);
 			chargeBtn.removeEventListener(MouseEvent.CLICK, onChargeMoney);
-			addRepoBtn.removeEventListener(MouseEvent.CLICK, onAddRepo);
+			//addRepoBtn.removeEventListener(MouseEvent.CLICK, onAddRepo);
+			chatByQQBtn.removeEventListener(MouseEvent.CLICK, onChatByQQHandler);
+			
 			chujiRoomBtn.dispose();
 			gaojiRoomBtn.dispose();
 			point2beanBtn.dispose();
 			bean2pointBtn.dispose();
 			chargeBtn.dispose();
-			addRepoBtn.dispose();
+			//addRepoBtn.dispose();
+			chatByQQBtn.dispose();
+			
 			point2beanBtn = null;
 			bean2pointBtn = null;
 			chujiRoomBtn = null;
 			gaojiRoomBtn = null;
 			chargeBtn = null;
-			addRepoBtn = null;
+			//addRepoBtn = null;
+			chatByQQBtn = null;
 			
 			roomDiscription.dispose();
 			roomDiscription = null;

@@ -41,8 +41,8 @@ package
 	import ui.HallChairUnit;
 	import ui.HallScreen;
 	import ui.HallTableUnit;
+	import ui.Loading;
 	import ui.LoginScreen;
-	import ui.PureTxtTip;
 	import ui.RoomTableContainer;
 	import ui.SimpleTip;
 	import ui.TipPanel;
@@ -119,6 +119,14 @@ package
 			sendHeartBeat();
 			if(gamingScreen && this.contains(gamingScreen))
 				gamingScreen.update();
+			
+			if(!isTryingConnect && Data.getInstance().player.username && Data.getInstance().player.username.length > 0){//已登录
+				var takeTime:int = getTimer() - heartBeat;
+				if(takeTime > 30000){
+					clearSocket();
+					tryReconnect();
+				}
+			}
 		}
 		
 		private var temp:int;
@@ -222,6 +230,8 @@ package
 		
 		private function onConnect(e:Event):void{
 			reconnect = true;
+			socketConnected = true;
+			heartBeat = getTimer();
 			DebugConsole.addDebugLog(stage, "连接服务器成功！");
 		}
 		
@@ -229,6 +239,7 @@ package
 		private var delayShowOfflineTipTimer:Timer;
 		private function onClose(e:Event):void{
 			SimpleTip.getInstance().hide();
+			socketConnected = false;
 			//3s后显示断线警告框
 			if(delayShowOfflineTipTimer == null){
 				delayShowOfflineTipTimer = new Timer(3000, 1);
@@ -300,6 +311,8 @@ package
 				}
 			}catch(error:Error){
 				DebugConsole.addDebugLog(stage, "Something wrong happened in onSocketData...");
+				var warnTipPanel:WarnTipPanel = new WarnTipPanel(WarnTipPanel.DATA_ERROR);
+				addChild(warnTipPanel);
 			}
 		}
 		
@@ -432,6 +445,7 @@ package
 		}
 		
 		private function onBeanToPoint(content:String):void{
+			SimpleTip.getInstance().hide();
 			var obj:Object = com.adobe.serialization.json.JSON.decode(content);
 			var nickName:String = Data.getInstance().player.nickName;
 			var pointNum:int = obj.pointNum;
@@ -451,6 +465,7 @@ package
 		}
 		
 		private function onPointToBean(content:String):void{
+			SimpleTip.getInstance().hide();
 			var obj:Object = com.adobe.serialization.json.JSON.decode(content);
 			var nickName:String = Data.getInstance().player.nickName;
 			var pointNum:int = obj.pointNum;
@@ -503,18 +518,24 @@ package
 		}
 		
 		private function onFastReply(content:String):void{
+			securityInHall();
+			if(!gamingScreen)	return;
 			DebugConsole.addDebugLog(stage, "~~~Command.FAST_REPLY");
 			var obj:Object = com.adobe.serialization.json.JSON.decode(content);
 			Data.getInstance().chatData.addFastMessage(obj.nickName, obj.messageId);
 		}
 		
 		private function onNomalChat(content:String):void{
+			securityInHall();
+			if(!gamingScreen)	return;
 			DebugConsole.addDebugLog(stage, "~~~Command.NOMAL_CHAT");
 			var obj:Object = com.adobe.serialization.json.JSON.decode(content);
 			Data.getInstance().chatData.addMessage(obj.nickName, obj.message);
 		}
 		
 		private function onGameOver(content:String):void{
+			securityInHall();
+			if(!gamingScreen)	return;
 			DebugConsole.addDebugLog(stage, "~~~Command.GAME_OVER");
 			DebugConsole.addDebugLog(stage, content);
 			var obj:Object = com.adobe.serialization.json.JSON.decode(content);
@@ -538,6 +559,8 @@ package
 		}
 		
 		private function onStartShowCards(content:String):void{
+			securityInHall();
+			if(!gamingScreen)	return;
 			DebugConsole.addDebugLog(stage, "~~~Command.START_SHOWCARDS");
 			var obj:Object = com.adobe.serialization.json.JSON.decode(content);
 			Data.getInstance().updateTablePlayers(obj as Array);
@@ -546,6 +569,8 @@ package
 		}
 		
 		private function onWaitShowCards(content:String):void{
+			securityInHall();
+			if(!gamingScreen)	return;
 			DebugConsole.addDebugLog(stage, "~~~Command.WAIT_SHOWCARDS");
 			var obj:Object = com.adobe.serialization.json.JSON.decode(content);
 			var userDataArr:Array = obj as Array;
@@ -557,6 +582,8 @@ package
 		}
 		
 		private function onSendCards(content:String):void{
+			securityInHall();
+			if(!gamingScreen)	return;
 			DebugConsole.addDebugLog(stage, "~~~Command.SEND_CARDS");
 			var obj:Object = com.adobe.serialization.json.JSON.decode(content);
 			var userData:UserData = Data.getInstance().objToUserDataInUpdateTablePlayer(obj);
@@ -567,6 +594,8 @@ package
 		}
 		
 		private function onShowPlayerBetCoin(content:String):void{
+			securityInHall();
+			if(!gamingScreen)	return;
 			DebugConsole.addDebugLog(stage, "~~~Command.SHOW_PLAYER_BETCOIN");
 			var obj:Object = com.adobe.serialization.json.JSON.decode(content);
 			var userData:UserData = Data.getInstance().objToUserDataInUpdateTablePlayer(obj);
@@ -578,6 +607,8 @@ package
 		
 		//庄家确定后，庄家等待其他玩家下注，其他玩家10s下注时间
 		private function onSystemChooseZ(content:String):void{
+			securityInHall();
+			if(!gamingScreen)	return;
 			DebugConsole.addDebugLog(stage, "~~~Command.SYSTEM_CHOOSE_Z");
 			var obj:Object = com.adobe.serialization.json.JSON.decode(content);
 			var userDataArr:Array = obj as Array;
@@ -589,6 +620,8 @@ package
 		}
 		
 		private function onStartJiaoZ(content:String):void{
+			securityInHall();
+			if(!gamingScreen)	return;
 			DebugConsole.addDebugLog(stage, "~~~Command.START_JIAO_Z");
 			var obj:Object = com.adobe.serialization.json.JSON.decode(content);
 			Data.getInstance().updateMyself(obj);
@@ -598,6 +631,10 @@ package
 		}
 		
 		private function onUpdateTablePlayer(content:String):void{
+			//假如玩家在收到此命令的时候刚好返回到了大厅则不处理
+			securityInHall();
+			if(!gamingScreen)	return;
+			
 			DebugConsole.addDebugLog(stage, "~~~Command.UPDATE_TABLE_PLAYER");
 			var obj:Object = com.adobe.serialization.json.JSON.decode(content);
 			var userData:UserData = Data.getInstance().objToUserDataInUpdateTablePlayer(obj);
@@ -606,14 +643,20 @@ package
 		}
 		
 		private function onBackToHall(content:String):void{
+			securityInHall();
+			if(!gamingScreen)	return;
 			DebugConsole.addDebugLog(stage, "~~~Command.BACK_TO_HALL");
 			clearGamingScreen();
+			SimpleTip.getInstance().showTip(this, "正在加载房间信息，请稍候...");
 			var roomObj:Object = com.adobe.serialization.json.JSON.decode(content);
 			creatRoom(roomObj);
+			SimpleTip.getInstance().hide();
 		}
 		
 		//当玩家从牌桌离开后通知牌桌内的其他玩家
 		private function onPlayerLeaveTable(content:String):void{
+			securityInHall();
+			if(!gamingScreen)	return;
 			DebugConsole.addDebugLog(stage, "~~~Command.PLAYER_LEAVE_TABLE");
 			var obj:Object = com.adobe.serialization.json.JSON.decode(content);
 			var userData:UserData = Data.getInstance().removePlayerInList(obj);
@@ -621,6 +664,8 @@ package
 		}
 		
 		private function onGamingAddPlayer(content:String):void{
+			securityInHall();
+			if(!gamingScreen)	return;
 			DebugConsole.addDebugLog(stage, "~~~Command.GAMING_ADD_PLAYER");
 			var obj:Object = com.adobe.serialization.json.JSON.decode(content);
 			var userData:UserData = Data.getInstance().addNewPlayerInList(obj);
@@ -628,7 +673,11 @@ package
 		}
 		
 		private function onUpdateChair(content:String):void{
+			//如果恰巧收到这个命令的时候玩家进去游戏里面，则不处理
+			securityInGaming();
+			if(!hallScreen )		return;
 			DebugConsole.addDebugLog(stage, "~~~Command.UPDATE_CHAIR");
+			
 			var obj:Object = com.adobe.serialization.json.JSON.decode(content);
 			var userData:UserData = Data.getInstance().objToUserDataInUpdateChairs(obj);
 			if(Data.getInstance().player.roomId == 1){
@@ -638,13 +687,28 @@ package
 			}
 		}
 		
+		private function securityInGaming():void{
+			if(gamingScreen && this.contains(gamingScreen))
+				return;
+		}
+		
+		private function securityInHall():void{
+			if(hallScreen && this.contains(hallScreen))
+				return;
+		}
+		
 		private function onChooseChair(content:String):void{
 			DebugConsole.addDebugLog(stage, "~~~Command.CHOOSE_CHAIR");
 			var obj:Object = com.adobe.serialization.json.JSON.decode(content);
 			var usersInfoList:Array = obj as Array;
-			Data.getInstance().usersInfoList2gamingPlayersList(usersInfoList);
+			
 			tempReleaseHallScreen();
+			Data.getInstance().usersInfoList2gamingPlayersList(usersInfoList);
 			addGamingScreen();
+			
+			SimpleTip.getInstance().showTip(this, "初始化玩家信息完成...");
+			SimpleTip.getInstance().hide();
+			
 			Data.getInstance().updateMyselfInArr(usersInfoList);
 			gamingScreen.updateMsgsUserData(usersInfoList);
 			if(Data.getInstance().player.state == UserData.USER_WATCH){
@@ -683,6 +747,7 @@ package
 				CommunicateUtils.getInstance().sendMessage(socket, Command.POINT_TO_BEAN, obj);
 			else if(event.type == ExchangeEvent.BEAN_TO_POINT)
 				CommunicateUtils.getInstance().sendMessage(socket, Command.BEAN_TO_POINT, obj);
+			SimpleTip.getInstance().showTip(this, "正在查询...");
 		}
 		
 		private function onTuoguanHandler(event:UserEvent):void
@@ -721,6 +786,7 @@ package
 			obj.username = Data.getInstance().player.username;
 			obj.pid = Data.getInstance().player.pid;
 			CommunicateUtils.getInstance().sendMessage(socket, Command.BACK_TO_HALL, obj);
+			SimpleTip.getInstance().showTip(this, "正在返回大厅，请稍候...");
 			DebugConsole.addDebugLog(stage, "向服务器发送返回大厅请求...");
 		}		
 		
@@ -776,10 +842,11 @@ package
 			switch(e.countDownType){
 				case UserData.USER_WAIT_FOR_READY:
 					DebugConsole.addDebugLog(stage, "玩家准备状态倒计时结束...");
+					gamingScreen.hideGetReadyBtn();
 					//为方便压力测试，本来要退出桌子回到大厅
 					CommunicateUtils.getInstance().sendMessage(socket, Command.BACK_TO_HALL, obj);
+					SimpleTip.getInstance().showTip(this, "正在返回大厅，请稍候...");
 					//onReadyOkHandler();//压力test更改
-					//gamingScreen.hideGetReadyBtn();//压力test更改
 					
 					DebugConsole.addDebugLog(stage, "UserWaitForReady--Time is up!!!");
 					break;
@@ -817,21 +884,23 @@ package
 		}
 		
 		private function clearGamingScreen():void{
-			removeChild(gamingScreen);
-			gamingScreen.removeEventListener(CountDownEvent.TIME_UP, onTimeUpHandler);
-			gamingScreen.removeEventListener(UserEvent.READY_OK, onReadyOkHandler);
-			gamingScreen.removeEventListener(UserEvent.JIAO_Z, onJiaoZHandler);
-			gamingScreen.removeEventListener(UserEvent.BU_JIAO_Z, onJiaoZHandler);
-			gamingScreen.removeEventListener(UserEvent.CONFIRM_SHOW_CARDS, onConfirmShowCardsHandler);
-			gamingScreen.removeEventListener(UserEvent.BACK_TO_HALL, onBackToHallHandler);
-			gamingScreen.removeEventListener(BetEvent.BET, onBetHandler);
-			gamingScreen.removeEventListener(UserEvent.NOMAL_CHAT, onChatHandler);
-			gamingScreen.removeEventListener(UserEvent.FAST_CHAT, onChatHandler);
-			gamingScreen.removeEventListener(UserEvent.TUO_GUAN, onTuoguanHandler);
-			gamingScreen.removeEventListener(UserEvent.CANCEL_TUO_GUAN, onTuoguanHandler);
-			gamingScreen.removeEventListener(UserEvent.BACK_TO_WELCOME, onBackToWelcome);
-			gamingScreen.dispose();
-			gamingScreen = null;
+			if(gamingScreen && gamingScreen.parent){
+				removeChild(gamingScreen);
+				gamingScreen.removeEventListener(CountDownEvent.TIME_UP, onTimeUpHandler);
+				gamingScreen.removeEventListener(UserEvent.READY_OK, onReadyOkHandler);
+				gamingScreen.removeEventListener(UserEvent.JIAO_Z, onJiaoZHandler);
+				gamingScreen.removeEventListener(UserEvent.BU_JIAO_Z, onJiaoZHandler);
+				gamingScreen.removeEventListener(UserEvent.CONFIRM_SHOW_CARDS, onConfirmShowCardsHandler);
+				gamingScreen.removeEventListener(UserEvent.BACK_TO_HALL, onBackToHallHandler);
+				gamingScreen.removeEventListener(BetEvent.BET, onBetHandler);
+				gamingScreen.removeEventListener(UserEvent.NOMAL_CHAT, onChatHandler);
+				gamingScreen.removeEventListener(UserEvent.FAST_CHAT, onChatHandler);
+				gamingScreen.removeEventListener(UserEvent.TUO_GUAN, onTuoguanHandler);
+				gamingScreen.removeEventListener(UserEvent.CANCEL_TUO_GUAN, onTuoguanHandler);
+				gamingScreen.removeEventListener(UserEvent.BACK_TO_WELCOME, onBackToWelcome);
+				gamingScreen.dispose();
+				gamingScreen = null;
+			}
 		}
 		
 		//是否掉线了，正常情况默认下为没掉线false
@@ -854,6 +923,7 @@ package
 			clearWelcomeScreen();
 			var roomObj:Object = com.adobe.serialization.json.JSON.decode(content);
 			creatRoom(roomObj);
+			SimpleTip.getInstance().hide();
 			breakLine = false;
 		}
 		
@@ -876,14 +946,14 @@ package
 				else 
 					chujiRoomTableContainer = new RoomTableContainer(roomData);
 				hallScreen.scrollPane.source = chujiRoomTableContainer;
-				DebugConsole.addDebugLog(stage, "玩家在欢迎界面中选择了初级场进入...");
+				DebugConsole.addDebugLog(stage, "玩家选择了初级场进入...");
 			}else if(Data.getInstance().player.roomId == 2){
 				if(gaojiRoomTableContainer)
 					gaojiRoomTableContainer.setRoom(roomData);
 				else
 					gaojiRoomTableContainer = new RoomTableContainer(roomData);
 				hallScreen.scrollPane.source = gaojiRoomTableContainer;
-				DebugConsole.addDebugLog(stage, "玩家在欢迎界面中选择了高级场进入...");
+				DebugConsole.addDebugLog(stage, "玩家选择了高级场进入...");
 			}
 			
 			hallScreen.addEventListener(CustomEvent.BACK_TO_WELCOME, onBackToWelcomeHandler);
@@ -902,6 +972,21 @@ package
 			hideExchangePanel();
 		}
 		
+		private function onChooseChairHandler(e:CustomEvent):void{
+			try{
+				var obj:Object = {};
+				obj.username = Data.getInstance().player.username;
+				obj.pid = Data.getInstance().player.pid;
+				obj.tableId = e.data.tableId;
+				obj.chairId = e.data.chairId;
+				CommunicateUtils.getInstance().sendMessage(socket, Command.CHOOSE_CHAIR, obj);
+				DebugConsole.addDebugLog(stage, "玩家本人选择板凳进入牌桌...");
+				SimpleTip.getInstance().showTip(this, "正在初始化桌子内部玩家信息...");
+			}catch(e:Error){
+			
+			}
+		}
+		
 		private function tempReleaseHallScreen():void{
 			removeChild(hallScreen);
 			hallScreen.removeEventListener(CustomEvent.BACK_TO_WELCOME, onBackToWelcomeHandler);
@@ -910,19 +995,9 @@ package
 			hallScreen.removeEventListener(UserEvent.BACK_TO_WELCOME, onBackToWelcome);
 		}
 		
-		private function onChooseChairHandler(e:CustomEvent):void{
-			var obj:Object = {};
-			obj.username = Data.getInstance().player.username;
-			obj.pid = Data.getInstance().player.pid;
-			obj.tableId = e.data.tableId;
-			obj.chairId = e.data.chairId;
-			CommunicateUtils.getInstance().sendMessage(socket, Command.CHOOSE_CHAIR, obj);
-			DebugConsole.addDebugLog(stage, "玩家本人选择板凳进入牌桌...");
-		}
-		
 		private function onHallChooseRoom(content:String):void{
-			PureTxtTip.getInstance().show(this, "连接房间服务器成功......");
-			PureTxtTip.getInstance().show(this, "正在更新房间内数据......");
+			SimpleTip.getInstance().showTip(this, "连接房间服务器成功......");
+			SimpleTip.getInstance().showTip(this, "正在更新房间内数据......");
 			var obj:Object = com.adobe.serialization.json.JSON.decode(content);
 			var roomData:RoomData = new RoomData();
 			roomData.init(obj);
@@ -946,8 +1021,8 @@ package
 				}
 				hallScreen.scrollPane.source = gaojiRoomTableContainer;
 			}
-			PureTxtTip.getInstance().show(this, "房间数据更新完毕......");
-			PureTxtTip.getInstance().hide();
+			SimpleTip.getInstance().showTip(this, "房间数据更新完毕......");
+			SimpleTip.getInstance().hide();
 		}
 		
 		private function onHallChangeRoomHandler(e:RoomEvent):void{
@@ -956,6 +1031,7 @@ package
 			obj.pid = Data.getInstance().player.pid;
 			obj.roomId = e.roomId;
 			CommunicateUtils.getInstance().sendMessage(socket, Command.HALL_CHOOSE_ROOM, obj);
+			SimpleTip.getInstance().showTip(this, "正在连接房间服务器中......");
 		}
 		
 		private function clearWelcomeScreen():void{
@@ -977,6 +1053,7 @@ package
 			DebugConsole.addDebugLog(stage, "用户登录成功！");
 			clearLoginScreen();
 			addWelcomeScreen();
+			dispatchEvent(new CustomEvent(CustomEvent.CORE_GAME_LOAD_COMPLETE));
 		}
 		
 		private function clearLoginScreen():void{
@@ -1003,6 +1080,7 @@ package
 			obj.nomalIn = !breakLine;  //nomalIn  true 正常进入房间  false断线重连成功后进入房间
 			CommunicateUtils.getInstance().sendMessage(socket, Command.CHOOSE_ROOM, obj);
 			DebugConsole.addDebugLog(stage, "玩家从欢迎界面发送选择房间命令到服务器..." + obj.nomalIn);
+			SimpleTip.getInstance().showTip(this, "正在连接房间服务器中......");
 		}
 		
 		private function onConfirmExchange(e:ExchangeEvent):void{
@@ -1042,12 +1120,13 @@ package
 			var s:String = this.stage.loaderInfo.parameters["sign"];
 			var pid:String = this.stage.loaderInfo.parameters["pid"];
 			var chargePid:String = "p" + pid;
+			DebugConsole.addDebugLog(stage, chargePid);
 			var configXml:XML = new XML(configLoader.data);
 			host = configXml.host;//主机
 			port = configXml.port;//端口
 			Childhood.playDiscriptionUrl = configXml.playDiscriptionUrl;//游戏说明按钮
-			Childhood.chargeUrl = (s != null) ? (configXml.chargeUrl.child(chargePid) + "?sign=" + s) : configXml.chargeUrl;//充值链接
-			Childhood.personalCenterUrl = (s != null) ?(configXml.personalCenterUrl.child(chargePid) + "?sign=" + s) : configXml.personalCenterUrl;//个人中心
+			Childhood.chargeUrl = (s != "") ? (configXml.chargeUrl.child(chargePid) + "?sign=" + s) : configXml.chargeUrl.child(chargePid);//充值链接
+			//Childhood.personalCenterUrl = (s != "") ?(configXml.personalCenterUrl.child(chargePid) + "?sign=" + s) : configXml.personalCenterUrl.child(chargePid);//个人中心
 			DebugConsole.addDebugLog(stage, "资源配置文件加载成功...");
 			login();
 		}
@@ -1102,6 +1181,7 @@ package
 					warnTipPanel = new WarnTipPanel(WarnTipPanel.USER_LOGINED);
 					addChild(warnTipPanel);
 					DebugConsole.addDebugLog(stage, "错误！用户已经登录！");
+					dispatchEvent(new CustomEvent(CustomEvent.USER_LOGINED));
 					break;
 				case ErrorCode.USER_LOCKED:
 					DebugConsole.addDebugLog(stage, "错误！帐号已被禁用！");
@@ -1118,15 +1198,16 @@ package
 					DebugConsole.addDebugLog(stage, "Error--room full.");
 					break;
 				case ErrorCode.TABLE_COIN_SHORTAGE:
-					DebugConsole.addDebugLog(stage, "游戏豆不足以左下牌桌进行游戏！");
-					TipPanel.getInstance().show(hallScreen, Const.MONEY_NOT_ENOUGH);
+					DebugConsole.addDebugLog(stage, "游戏豆不足以坐下牌桌进行游戏！");
+					TipPanel.getInstance().show(this, Const.MONEY_NOT_ENOUGH);
 					break;
 				case ErrorCode.TABLE_JOIN_ERROR:
 					DebugConsole.addDebugLog(stage, "错误！进入牌桌出错！");
 					break;
 				case ErrorCode.NEXT_TURN_COIN_SHORTAGE:
 					DebugConsole.addDebugLog(stage, "游戏豆不足以进行下轮比赛，请充值！");
-					TipPanel.getInstance().show(gamingScreen, Const.MONEY_NOT_ENOUGH);
+					if(gamingScreen && this.contains(gamingScreen))
+						TipPanel.getInstance().show(gamingScreen, Const.MONEY_NOT_ENOUGH);
 					break;
 				case ErrorCode.EXCHANGE_SHORTAGE:
 					DebugConsole.addDebugLog(stage, "兑换余额不足！");
@@ -1136,6 +1217,11 @@ package
 				case ErrorCode.EXCHANGE_ERROR:
 					DebugConsole.addDebugLog(stage, "兑换失败！");
 					warnTipPanel = new WarnTipPanel(WarnTipPanel.EXCHANGE_ERROR);
+					addChild(warnTipPanel);
+					break;
+				case ErrorCode.EXCHANGE_BUSY:
+					DebugConsole.addDebugLog(stage, "服务器忙，兑换失败！");
+					warnTipPanel = new WarnTipPanel(WarnTipPanel.EXCHANGE_BUSY);
 					addChild(warnTipPanel);
 					break;
 				case ErrorCode.RECONNECT_ERROR:
@@ -1161,6 +1247,7 @@ package
 				
 				releaseDelayShowOfflineTimer();
 				removeWarnOffline();
+				SimpleTip.getInstance().hide();
 				
 				var obj:Object = {};
 				obj.username = Data.getInstance().player.username;

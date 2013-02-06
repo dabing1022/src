@@ -7,12 +7,12 @@ package ui
 	import utils.ResourceUtils;
 
 	/**卡牌背面容器
-	 * 5张背面牌，间距30px
+	 * 5张背面牌，间距25px
 	 * */
 	public class CardsBackShow extends Sprite
 	{
 		private var backCardsVec:Vector.<Bitmap>;
-		private const HSPACE:int = 30;
+		private const HSPACE:int = 25;
 		public function CardsBackShow()
 		{
 			super();

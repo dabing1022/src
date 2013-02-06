@@ -119,7 +119,7 @@ package ui
 		}
 		
 		private function onNextRound(e:MouseEvent):void{
-			dispatchEvent(new UserEvent(UserEvent.READY_OK, true));
+			dispatchEvent(new UserEvent(UserEvent.READY_OK, null, false));
 			if(this.parent){
 				this.parent.removeChild(this);
 				this.dispose();

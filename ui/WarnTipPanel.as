@@ -29,9 +29,11 @@ package ui
 		public static const EXCHANGE_SHORTAGE:String = "exchangeShortage";
 		public static const EXCHANGE_ERROR:String = "exchangeError";
 		public static const EXCHANGE_SUCCESS:String = "exchangeSuccess";
+		public static const EXCHANGE_BUSY:String = "exchangeBusy";
 		public static const USER_LOGINED:String = "userLogined";
 		public static const RECONNECT_ERROR:String = "reconnectError";
 		public static const RECONNECT_SUCCESS:String = "reconnectSuccess";
+		public static const DATA_ERROR:String = "dataError";
 		private var _type:String;
 		public function WarnTipPanel(type:String)
 		{
@@ -62,7 +64,7 @@ package ui
 		{
 			if(_type == OFFLINE)
 				dispatchEvent(new UserEvent(UserEvent.BACK_TO_WELCOME, null, true));
-			else if(_type == RECONNECT_ERROR){
+			else if(_type == RECONNECT_ERROR || _type == DATA_ERROR){
 				if(ExternalInterface.available){
 					ExternalInterface.call("reloadHtml");
 				}
@@ -112,7 +114,7 @@ package ui
 			addChild(tipTxt);
 		}
 		
-		public function showTip(type:String):void{
+		private function showTip(type:String):void{
 			_type = type;
 			switch(_type){
 				case OFFLINE:
@@ -122,10 +124,13 @@ package ui
 					tipTxt.text = "兑换余额不足";
 					break;
 				case EXCHANGE_ERROR:
-					tipTxt.text = "兑换错误，请稍候重试！";
+					tipTxt.text = "兑换错误，请重试！";
 					break;
 				case EXCHANGE_SUCCESS:
 					tipTxt.text = "兑换成功！";
+					break;
+				case EXCHANGE_BUSY:
+					tipTxt.text = "服务器忙，请重试！";
 					break;
 				case USER_LOGINED:
 					tipTxt.text = "用户已登录！";
@@ -135,6 +140,9 @@ package ui
 					break;
 				case RECONNECT_SUCCESS:
 					tipTxt.text = "重连成功！";
+					break;
+				case DATA_ERROR:
+					tipTxt.text = "网络异常，请重新登录...";
 					break;
 			}
 		}

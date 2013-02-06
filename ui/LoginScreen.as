@@ -39,7 +39,7 @@ package ui
 		
 		private function init():void{
 			bg = new Shape();
-			bg.graphics.beginFill(0xffffff, 0.5);
+			bg.graphics.beginFill(0x777777);
 			bg.graphics.drawRect(0, 0, Const.WIDTH, Const.HEIGHT);
 			bg.graphics.endFill();
 			addChild(bg);

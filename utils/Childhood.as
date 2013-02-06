@@ -16,6 +16,11 @@ package utils
 			navigateToURL(new URLRequest(url), "_blank");
 		}
 		
+		public static function chatByQQ():void{
+			if(ExternalInterface.available)
+				ExternalInterface.call("chatByQQ");
+		}
+		
 		public static function openChargeUrl():void{
 			if(ExternalInterface.available)
 				ExternalInterface.call("charge", chargeUrl);

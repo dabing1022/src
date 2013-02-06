@@ -115,6 +115,9 @@ package
 		public static const CHARGE_BUTTON:String = "ChargeButton";
 		public static const AVATAR_TXT_BG:String = "AvatarTxtBg";
 		public static const PUBLIC_TEST_LOGO:String = "PublicTestLogo";
+		//客服qq交谈
+		public static const CHAT_BY_QQ_BUTTON1:String = "ChatByQQButton1";
+		public static const CHAT_BY_QQ_BUTTON2:String = "ChatByQQButton2";
 		
 		/**大厅界面*/
 		public static const LABA:String = "Laba";
